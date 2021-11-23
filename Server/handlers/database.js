@@ -14,10 +14,13 @@
 
 const databaseServer = require("../servers/database")
 const databaseInstance = databaseServer.database()
-
-module.exports = {
+const databaseInstances = {
   users: databaseInstance.ref("users"),
   privateGroups: databaseInstance.ref("private-groups"),
   publicGroups: databaseInstance.ref("private-groups"),
   serverGroups: databaseInstance.ref("server-groups")
+}
+
+module.exports = {
+  instances: databaseInstances
 }

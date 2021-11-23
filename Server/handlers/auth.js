@@ -14,6 +14,7 @@
 
 const databaseServer = require("../servers/database")
 const socketServer = require("../servers/socket")
+const databaseHandler = require("./database")
 
 
 /*------------
@@ -30,7 +31,10 @@ socketServer.of("/auth").on("connection", (socket) => {
       emailVerified: false,
       disabled: false
     })
-    .then(function(user) {
+    .then(function({user}) {
+      databaseHandler.instances.users.child(user.uid).set({
+        birthDate: data.birthDate
+      })
       instanceReference.emit("Auth:onClientRegister", {success: true})
     })
     .catch(function(error) {
