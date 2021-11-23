@@ -2,9 +2,9 @@
      Resource: vClient--Server
      Script: handlers: auth.js
      Server: -
-     Author: OvileAmriam
-     Developer(s): Aviril
-     DOC: 22/11/2021 (OvileAmriam)
+     Author: vStudio
+     Developer(s): Aviril, Mario, Tron
+     DOC: 23/11/2021
      Desc: Auth Handler
 ----------------------------------------------------------------*/
 

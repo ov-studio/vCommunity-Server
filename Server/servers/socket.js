@@ -2,9 +2,9 @@
      Resource: vClient--Server
      Script: servers: socket.js
      Server: -
-     Author: OvileAmriam
-     Developer(s): Aviril
-     DOC: 22/11/2021 (OvileAmriam)
+     Author: vStudio
+     Developer(s): Aviril, Mario, Tron
+     DOC: 23/11/2021
      Desc: Socket Server
 ----------------------------------------------------------------*/
 
