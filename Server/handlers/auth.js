@@ -31,7 +31,7 @@ socketServer.of("/auth").on("connection", (socket) => {
       emailVerified: false,
       disabled: false
     })
-    .then(function({user}) {
+    .then(function(user) {
       databaseHandler.instances.users.child(user.uid).set({
         birthDate: data.birthDate
       })
