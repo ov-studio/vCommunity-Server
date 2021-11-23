@@ -1,7 +1,6 @@
 /*----------------------------------------------------------------
-     Resource: vClient--Server
+     Resource: vClient (Server)
      Script: loader.js
-     Server: -
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
      DOC: 23/11/2021
