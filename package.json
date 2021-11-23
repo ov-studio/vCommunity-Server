@@ -1,0 +1,15 @@
+{
+  "name": "vclient--server",
+  "version": "1.0.0",
+  "author": "ᴏᴠ <crazynuggets@outlook.com> (https://github.com/ov-studio)",
+  "license": "GPLV3",
+  "scripts": {
+    "start": "node ./server/loader"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "firebase-admin": "^10.0.0",
+    "socket.io": "^4.4.0"
+  }
+}
