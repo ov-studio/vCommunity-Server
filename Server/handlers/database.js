@@ -17,6 +17,7 @@ const databaseInstance = databaseServer.database()
 
 module.exports = {
   users: databaseInstance.ref("users"),
-  privGroups: databaseInstance.ref("private-groups"),
+  privateGroups: databaseInstance.ref("private-groups"),
+  publicGroups: databaseInstance.ref("private-groups"),
   serverGroups: databaseInstance.ref("server-groups")
 }
