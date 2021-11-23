@@ -10,7 +10,7 @@
 
 
 /*-----------
-━━ Imports ━━
+-- Imports --
 -----------*/
 
 const databaseServer = require("../servers/database")
@@ -18,7 +18,7 @@ const socketServer = require("../servers/socket")
 
 
 /*------------
-━━ Handlers ━━
+-- Handlers --
 ------------*/
 
 socketServer.of("/app").on("connection", (socket) => {

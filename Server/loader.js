@@ -10,7 +10,7 @@
 
 
 /*-----------
-━━ Servers ━━
+-- Servers --
 -----------*/
 
 require("./servers/database")
@@ -18,7 +18,7 @@ require("./servers/socket")
 
 
 /*------------
-━━ Handlers ━━
+-- Handlers --
 ------------*/
 
 require("./handlers/database")

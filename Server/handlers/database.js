@@ -10,7 +10,7 @@
 
 
 /*-----------
-━━ Imports ━━
+-- Imports --
 -----------*/
 
 const databaseServer = require("../servers/database")
