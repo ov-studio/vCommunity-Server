@@ -22,23 +22,24 @@ const databaseHandler = require("./database")
 ------------*/
 
 socketServer.of("/auth").on("connection", (socket) => {
-  socket.on("Auth:onClientRegister", function(data) {
-    const instanceReference = this
+  socket.on("Auth:onClientRegister", function(userData) {
+    if (!userData) return false
+    const socketReference = this
     databaseServer.auth().createUser({
-      email: data.email,
-      password: data.password,
-      displayName: data.username,
+      email: userData.email,
+      password: userData.password,
+      displayName: userData.username,
       emailVerified: false,
       disabled: false
     })
     .then(function(user) {
       databaseHandler.instances.users.child(user.uid).set({
-        birthDate: data.birthDate
+        birthDate: userData.birthDate
       })
-      instanceReference.emit("Auth:onClientRegister", {success: true})
+      socketReference.emit("Auth:onClientRegister", {success: true})
     })
     .catch(function(error) {
-      instanceReference.emit("Auth:onClientRegister", {error: error.code})
+      socketReference.emit("Auth:onClientRegister", {error: error.code})
     })
   })
 })
