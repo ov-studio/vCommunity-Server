@@ -1,10 +1,10 @@
 /*----------------------------------------------------------------
      Resource: vClient (Server)
-     Script: handlers: app.js
+     Script: handlers: app: instance.js
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
      DOC: 23/11/2021
-     Desc: App Handler
+     Desc: Instance Handler
 ----------------------------------------------------------------*/
 
 
@@ -12,26 +12,26 @@
 -- Imports --
 -----------*/
 
-const databaseServer = require("../servers/database")
-const socketServer = require("../servers/socket")
-const clientInstances = {}
+const CInstances = {}
 
 
 /*------------
 -- Handlers --
 ------------*/
 
-socketServer.of("/app").on("connection", (socket) => {
+module.exports = function(socketServer, socket) {
+  console.log("LOADED MODULE..")
   socket.on("App:onClientConnect", function(userData) {
     if (!userData) return false
-    if (!clientInstances[(userData.uid)]) clientInstances[(userData.uid)] = {}
-    clientInstances[(userData.uid)][this] = true
+    if (!CInstances[(userData.uid)]) CInstances[(userData.uid)] = {}
+    CInstances[(userData.uid)][this] = true
     console.log("Client Connected..")
   })
+
   socket.on("App:onClientDisconnect", function(userData) {
-    if (!userData || !clientInstances[(userData.uid)]) return false
-    clientInstances[(userData.uid)][this] = null
-    if Object.entries(socketDatas).length <= 0 clientInstances[(userData.uid)][ = null
+    if (!userData || !CInstances[(userData.uid)]) return false
+    CInstances[(userData.uid)][this] = null
+    if (Object.entries(socketDatas).length <= 0) CInstances[(userData.uid)][ = null
     console.log("Client Disconnected..")
   })
-})
+}

@@ -1,25 +1,24 @@
 /*----------------------------------------------------------------
      Resource: vClient (Server)
-     Script: loader.js
+     Script: handlers: app: loader.js
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
      DOC: 23/11/2021
-     Desc: Module Loader
+     Desc: App Loader
 ----------------------------------------------------------------*/
 
 
 /*-----------
--- Servers --
+-- Imports --
 -----------*/
 
-require("./servers/database")
-require("./servers/socket")
+const socketServer = require("../../servers/socket")
 
 
 /*------------
 -- Handlers --
 ------------*/
 
-require("./handlers/database")
-require("./handlers/auth")
-require("./handlers/app/loader")
+socketServer.of("/app").on("connection", (socket) => {
+  require("./instance")(socketServer, socket)
+})
