@@ -13,6 +13,7 @@
 -----------*/
 
 const CInstances = {}
+const socketIntances = {}
 
 
 /*------------
@@ -24,15 +25,13 @@ module.exports = function(socketServer, socket) {
     if (!userData) return false
     if (!CInstances[(userData.uid)]) CInstances[(userData.uid)] = {}
     CInstances[(userData.uid)][this] = true
-    console.log("Connected Client")
-    console.log(userData.uid)
+    socketIntances[this] = userData.uid
   })
 
-  socket.on("App:onClientDisconnect", function(userData) {
-    if (!userData || !CInstances[(userData.uid)]) return false
-    CInstances[(userData.uid)][this] = null
-    if (Object.entries(CInstances[(userData.uid)]).length <= 0) CInstances[(userData.uid)] = null
-    console.log("Disconnected Client")
-    console.log(userData.uid)
+  socket.on("disconnect", function() {
+    if (!socketIntances[this] || !CInstances[(socketIntances[this])]) return false
+    CInstances[(socketIntances[this])][this] = null
+    if (Object.entries(CInstances[(socketIntances[this])]).length <= 0) CInstances[(socketIntances[this])] = null
+    socketIntances[this] = null
   })
 }
