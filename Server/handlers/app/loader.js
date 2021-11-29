@@ -20,5 +20,6 @@ const socketServer = require("../../servers/socket")
 ------------*/
 
 socketServer.of("/app").on("connection", (socket) => {
-  require("./instance")(socketServer, socket)
+  require("./instance").initializeSocket(socketServer, socket)
+  require("./contacts").initializeSocket(socketServer, socket)
 })

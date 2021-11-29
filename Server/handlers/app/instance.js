@@ -12,26 +12,38 @@
 -- Imports --
 -----------*/
 
-const CInstances = {}
-const socketIntances = {}
+const clientInstances = {}
+const socketInstances = {}
 
 
 /*------------
 -- Handlers --
 ------------*/
 
-module.exports = function(socketServer, socket) {
-  socket.on("App:onClientConnect", function(userData) {
-    if (!userData) return false
-    if (!CInstances[(userData.uid)]) CInstances[(userData.uid)] = {}
-    CInstances[(userData.uid)][this] = true
-    socketIntances[this] = userData.uid
-  })
+module.exports = {
+  getInstancesByUID(uid) {
+    if (!clientInstances[uid]) return false
+    return clientInstances[uid]
+  },
 
-  socket.on("disconnect", function() {
-    if (!socketIntances[this] || !CInstances[(socketIntances[this])]) return false
-    CInstances[(socketIntances[this])][this] = null
-    if (Object.entries(CInstances[(socketIntances[this])]).length <= 0) CInstances[(socketIntances[this])] = null
-    socketIntances[this] = null
-  })
+  getInstancesBySocket(socket) {
+    if (!socketInstances[socket] || !clientInstances[(socketInstances[socket])]) return false
+    return clientInstances[(socketInstances[socket])]
+  },
+
+  initializeSocket(socketServer, socket) {
+    socket.on("App:onClientConnect", function(uid) {
+      if (!uid) return false
+      if (!clientInstances[uid]) clientInstances[uid] = {}
+      clientInstances[uid][this] = true
+      socketInstances[this] = uid
+    })
+
+    socket.on("disconnect", function() {
+      if (!socketInstances[this] || !clientInstances[(socketInstances[this])]) return false
+      clientInstances[(socketInstances[this])][this] = null
+      if (Object.entries(clientInstances[(socketInstances[this])]).length <= 0) clientInstances[(socketInstances[this])] = null
+      socketInstances[this] = null
+    })
+  }
 }
