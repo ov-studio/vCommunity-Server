@@ -14,6 +14,7 @@
 
 const clientInstances = {}
 const socketInstances = {}
+const databaseHandler = require("../database")
 
 
 /*------------
@@ -28,7 +29,7 @@ module.exports = {
 
   getInstancesBySocket(socket) {
     if (!socketInstances[socket] || !clientInstances[(socketInstances[socket])]) return false
-    return clientInstances[(socketInstances[socket])], socketInstances[socket]
+    return {"UID": socketInstances[socket], "Instance": clientInstances[(socketInstances[socket])]}
   },
 
   initializeSocket(socketServer, socket) {
@@ -37,6 +38,9 @@ module.exports = {
       if (!clientInstances[UID]) clientInstances[UID] = {}
       clientInstances[UID][this] = true
       socketInstances[this] = UID
+      databaseHandler.instances.users.child(UID).once("value", (snapshot) => {
+        console.log(snapshot)
+      })
     })
 
     socket.on("disconnect", function() {
