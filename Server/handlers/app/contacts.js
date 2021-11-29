@@ -56,7 +56,7 @@ module.exports = {
         const target_contacts = await getContactsByUID(UID)
         if (client_contacts.friends[UID] || client_contacts.blocked[UID] || target_contacts.pending[(client_instance.UID)] || target_contacts.blocked[(client_instance.UID)]) return false
         const cDate = new Date()
-        target_userRef.child(contactInstances["pending"]).update({
+        target_userRef.child(contactInstances.pending).update({
           [(client_instance.UID)]: cDate
         })
         return true
@@ -65,19 +65,19 @@ module.exports = {
         if (!client_contacts.pending[UID]) return false
         if (requestType == "accept") {
           const cDate = new Date()
-          client_userRef.child(contactInstances["pending"]).update({
+          client_userRef.child(contactInstances.pending).update({
             [UID]: null
           })
-          client_userRef.child(contactInstances["friends"]).update({
+          client_userRef.child(contactInstances.friends).update({
             [UID]: cDate
           })
-          target_userRef.child(contactInstances["friends"]).update({
+          target_userRef.child(contactInstances.friends).update({
             [(client_instance.UID)]: cDate
           })
           return true
         }
         else if (requestType == "reject") {
-          client_userRef.child(contactInstances["pending"]).update({
+          client_userRef.child(contactInstances.pending).update({
             [UID]: null
           })
           return true
@@ -95,32 +95,32 @@ module.exports = {
       if (requestType == "block") {
         if (client_contacts.blocked[UID]) return false
         const cDate = new Date()
-        client_userRef.child(contactInstances["pending"]).update({
+        client_userRef.child(contactInstances.pending).update({
           [UID]: null
         })
-        client_userRef.child(contactInstances["friends"]).update({
+        client_userRef.child(contactInstances.friends).update({
           [UID]: null
         })
-        target_userRef.child(contactInstances["pending"]).update({
+        target_userRef.child(contactInstances.pending).update({
           [(client_instance.UID)]: null
         })
-        target_userRef.child(contactInstances["friends"]).update({
+        target_userRef.child(contactInstances.friends).update({
           [(client_instance.UID)]: null
         })
-        client_userRef.child(contactInstances["blocked"]).update({
+        client_userRef.child(contactInstances.blocked).update({
           [UID]: cDate
         })
-        target_userRef.child(contactInstances["blocked"]).update({
+        target_userRef.child(contactInstances.blocked).update({
           [(client_instance.UID)]: cDate
         })
         return true
       }
       else if (requestType == "unblock") {
         if (!client_contacts.blocked[UID]) return false
-        client_userRef.child(contactInstances["blocked"]).update({
+        client_userRef.child(contactInstances.blocked).update({
           [UID]: null
         })
-        target_userRef.child(contactInstances["blocked"]).update({
+        target_userRef.child(contactInstances.blocked).update({
           [(client_instance.UID)]: null
         })
         return true
