@@ -27,6 +27,11 @@ module.exports = {
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
       const cDate = new Date()
+      const friendsSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").once("value")
+      const friendsSnapshotValue = friendsSnapshot.val()
+      const blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
+      const blockedSnapshotValue = blockedSnapshot.val()
+      if (friendsSnapshotValue[UID] || blockedSnapshotValue[UID]) return false
       databaseHandler.instances.users.child(UID).child("contacts/pending").update({
         UID: cDate
       })
