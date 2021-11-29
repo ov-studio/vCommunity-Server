@@ -21,22 +21,22 @@ const socketInstances = {}
 ------------*/
 
 module.exports = {
-  getInstancesByUID(uid) {
-    if (!clientInstances[uid]) return false
-    return clientInstances[uid]
+  getInstancesByUID(UID) {
+    if (!clientInstances[UID]) return false
+    return clientInstances[UID]
   },
 
   getInstancesBySocket(socket) {
     if (!socketInstances[socket] || !clientInstances[(socketInstances[socket])]) return false
-    return clientInstances[(socketInstances[socket])]
+    return clientInstances[(socketInstances[socket])], socketInstances[socket]
   },
 
   initializeSocket(socketServer, socket) {
-    socket.on("App:onClientConnect", function(uid) {
-      if (!uid) return false
-      if (!clientInstances[uid]) clientInstances[uid] = {}
-      clientInstances[uid][this] = true
-      socketInstances[this] = uid
+    socket.on("App:onClientConnect", function(UID) {
+      if (!UID) return false
+      if (!clientInstances[UID]) clientInstances[UID] = {}
+      clientInstances[UID][this] = true
+      socketInstances[this] = UID
     })
 
     socket.on("disconnect", function() {
