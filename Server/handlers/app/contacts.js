@@ -27,7 +27,7 @@ module.exports = {
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
       const cDate = new Date()
-      databaseHandler.instances.users.child(UID).child("contacts").child("pending").update({
+      databaseHandler.instances.users.child(UID).child("contacts/pending").update({
         UID: cDate
       })
     })
@@ -36,15 +36,16 @@ module.exports = {
       if (!UID) return false
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
-      databaseHandler.instances.users.child(CInstance.UID).child("contacts").child("pending").once("value", (snapshot) => {
+      databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").once("value", (snapshot) => {
+        if (!snapshot.val()[UID]) return false
         const cDate = new Date()
-        databaseHandler.instances.users.child(CInstance.UID).child("contacts").child("pending").update({
+        databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").update({
           UID: null
         })
-        databaseHandler.instances.users.child(CInstance.UID).child("contacts").child("friends").update({
+        databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").update({
           UID: cDate
         })
-        databaseHandler.instances.users.child(UID).child("contacts").child("friends").update({
+        databaseHandler.instances.users.child(UID).child("contacts/friends").update({
           UID: cDate
         })
       })

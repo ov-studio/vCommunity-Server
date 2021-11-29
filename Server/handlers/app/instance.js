@@ -38,9 +38,6 @@ module.exports = {
       if (!clientInstances[UID]) clientInstances[UID] = {}
       clientInstances[UID][this] = true
       socketInstances[this] = UID
-      databaseHandler.instances.users.child(UID).once("value", (snapshot) => {
-        console.log(snapshot)
-      })
     })
 
     socket.on("disconnect", function() {
