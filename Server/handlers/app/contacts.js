@@ -21,6 +21,21 @@ const instanceHandler = require("./instance")
 ------------*/
 
 module.exports = {
+  async getContactsByUID(UID) {
+    if (!databaseHandler.instances.users.hasChild(UID)) return false
+    const friendSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/friends").once("value")
+    const friendSnapshotValue = friendSnapshot.val()
+    const pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+    const pendingSnapshotValue = pendingSnapshot.val()
+    const blockedSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+    const blockedSnapshotValue = blockedSnapshot.val()
+    return {
+      "friends": friendSnapshotValue,
+      "pending": pendingSnapshotValue,
+      "blocked": blockedSnapshotValue
+    }
+  },
+
   initializeSocket(socketServer, socket) {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
