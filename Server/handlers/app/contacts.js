@@ -22,7 +22,7 @@ const instanceHandler = require("./instance")
 
 module.exports = {
   initializeSocket(socketServer, socket) {
-    socket.on("App:onClientSendFriendRequest", function(UID) {
+    socket.on("App:onClientSendFriendRequest", async function(UID) {
       if (!UID) return false
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
