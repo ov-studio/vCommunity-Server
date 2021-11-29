@@ -33,10 +33,12 @@ module.exports = {
         const client_blockedSnapshotValue = client_blockedSnapshot.val()
         const target_pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
         const target_pendingSnapshotValue = target_pendingSnapshot.val()
-        if (client_friendsSnapshotValue[UID] || client_blockedSnapshotValue[UID] || target_pendingSnapshotValue[UID]) return false
+        const target_blockedSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/blocked").once("value")
+        const target_blockedSnapshotValue = target_blockedSnapshot.val()
+        if (client_friendsSnapshotValue[UID] || client_blockedSnapshotValue[UID] || target_pendingSnapshotValue[(CInstance.UID)] || target_blockedSnapshotValue[(CInstance.UID)]) return false
         const cDate = new Date()
         databaseHandler.instances.users.child(UID).child("contacts/pending").update({
-          [CInstance.UID]: cDate
+          [(CInstance.UID)]: cDate
         })
         return true
       }
@@ -53,7 +55,7 @@ module.exports = {
             [UID]: cDate
           })
           databaseHandler.instances.users.child(UID).child("contacts/friends").update({
-            [CInstance.UID]: cDate
+            [(CInstance.UID)]: cDate
           })
           return true
         }
@@ -83,16 +85,16 @@ module.exports = {
           [UID]: null
         })
         databaseHandler.instances.users.child(UID).child("contacts/pending").update({
-          [CInstance.UID]: null
+          [(CInstance.UID)]: null
         })
         databaseHandler.instances.users.child(UID).child("contacts/friends").update({
-          [CInstance.UID]: null
+          [(CInstance.UID)]: null
         })
         databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").update({
           [UID]: cDate
         })
         databaseHandler.instances.users.child(UID).child("contacts/blocked").update({
-          [CInstance.UID]: cDate
+          [(CInstance.UID)]: cDate
         })
         return true
       }
@@ -102,7 +104,7 @@ module.exports = {
           [UID]: null
         })
         databaseHandler.instances.users.child(UID).child("contacts/blocked").update({
-          [CInstance.UID]: null
+          [(CInstance.UID)]: null
         })
         return true
       }
