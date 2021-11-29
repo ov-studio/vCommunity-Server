@@ -20,13 +20,13 @@ const instanceHandler = require("./instance")
 -- Handlers --
 ------------*/
 
-async function getContactsByUID(UID) {
+async function getContactsByUID(UID) {  
   if (!databaseHandler.instances.users.hasChild(UID)) return false
-  const friendSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/friends").once("value")
+  const friendSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(UID).child("contacts/friends"))
   const friendSnapshotValue = friendSnapshot.val()
-  const pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+  const pendingSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(UID).child("contacts/pending"))
   const pendingSnapshotValue = pendingSnapshot.val()
-  const blockedSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+  const blockedSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(UID).child("contacts/pending"))
   const blockedSnapshotValue = blockedSnapshot.val()
   return {
     "friends": friendSnapshotValue,
@@ -51,13 +51,13 @@ module.exports = {
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || (CInstance.UID == UID) || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
       if (requestType == "send") {
-        const client_friendsSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").once("value")
+        const client_friendsSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends"))
         const client_friendsSnapshotValue = client_friendsSnapshot.val()
-        const client_blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
+        const client_blockedSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked"))
         const client_blockedSnapshotValue = client_blockedSnapshot.val()
-        const target_pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+        const target_pendingSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(UID).child("contacts/pending"))
         const target_pendingSnapshotValue = target_pendingSnapshot.val()
-        const target_blockedSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/blocked").once("value")
+        const target_blockedSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(UID).child("contacts/blocked"))
         const target_blockedSnapshotValue = target_blockedSnapshot.val()
         if (client_friendsSnapshotValue[UID] || client_blockedSnapshotValue[UID] || target_pendingSnapshotValue[(CInstance.UID)] || target_blockedSnapshotValue[(CInstance.UID)]) return false
         const cDate = new Date()
@@ -67,7 +67,7 @@ module.exports = {
         return true
       }
       else {
-        const client_pendingSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").once("value")
+        const client_pendingSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending"))
         const client_pendingSnapshotValue = client_pendingSnapshot.val()
         if (!client_pendingSnapshotValue[UID]) return false
         if (requestType == "accept") {
@@ -97,7 +97,7 @@ module.exports = {
       if (!UID || !requestType) return false
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || (CInstance.UID == UID) || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
-      const client_blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
+      const client_blockedSnapshot = await databaseHandler.getSnapshot(databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked"))
       const client_blockedSnapshotValue = client_blockedSnapshot.val()
       if (requestType == "block") {
         if (client_blockedSnapshotValue[UID]) return false

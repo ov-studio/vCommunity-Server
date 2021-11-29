@@ -45,8 +45,7 @@ module.exports = {
       if (!clientInstances[UID]) clientInstances[UID] = {}
       clientInstances[UID][this] = true
       socketInstances[this] = UID
-      const clientContacts = await contactsHandler.getContactsByUID(UID)
-      this.emit("App:onClientSyncContacts", clientContacts)
+      this.emit("App:onClientSyncContacts", await contactsHandler.getContactsByUID(UID))
     })
 
     socket.on("disconnect", function() {

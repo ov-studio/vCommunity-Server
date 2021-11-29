@@ -22,5 +22,11 @@ const databaseInstances = {
 }
 
 module.exports = {
-  instances: databaseInstances
+  instances: databaseInstances,
+
+  async getSnapshot(snapshotURL) {
+    if (!snapshotURL) return false
+    const snapshot = await snapshotURL.once("value")
+    return snapshot
+  }
 }
