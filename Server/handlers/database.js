@@ -30,9 +30,11 @@ module.exports = {
     return (snapshot && snapshot.exists() && true) || false
   },
 
-  async getSnapshot(snapshotURL) {
+  async getSnapshot(snapshotURL, fetchValue) {
     if (!snapshotURL) return false
     const snapshot = await snapshotURL.once("value")
-    return (snapshot && snapshot.exists() && snapshot) || false
+    if (!snapshot || snapshot.exists()) return false
+    if (!fetchValue) return snapshot
+    else return snapshot.val()
   }
 }

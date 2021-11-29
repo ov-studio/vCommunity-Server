@@ -40,7 +40,6 @@ module.exports = {
 
   async injectSocket(socketServer, socket) {
     socket.on("App:onClientConnect", async function(UID) {
-      console.log("CONNE?")
       if (!UID) return false
       if (!clientInstances[UID]) clientInstances[UID] = {}
       clientInstances[UID][this] = true

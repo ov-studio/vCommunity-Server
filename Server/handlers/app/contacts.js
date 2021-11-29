@@ -14,6 +14,11 @@
 
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
+const contactInstances = {
+  friends: "contacts/friends",
+  pending: "contacts/pending",
+  blocked: "contacts/blocked"
+}
 
 
 /*------------
@@ -22,19 +27,18 @@ const instanceHandler = require("./instance")
 
 async function getContactsByUID(UID) {
   const userRef = databaseHandler.instances.users.child(UID)
-  const contactSnapshot = await databaseHandler.getSnapshot(userRef.child("contacts"))
-  const contactSnapshotValue = (contactSnapshot && contactSnapshot.val()) || false
-  return {
-    "friends": (contactSnapshotValue && contactSnapshotValue["friends"]) || {},
-    "pending": (contactSnapshotValue && contactSnapshotValue["pending"]) || {},
-    "blocked": (contactSnapshotValue && contactSnapshotValue["blocked"]) || {}
-  }
+  const contactsData = await databaseHandler.getSnapshot(userRef.child("contacts"), true)
+  const userContacts = {}
+  Object.entries(contactInstances).forEach(function(contactInstance) {
+    userContacts[(contactInstance[0])] = (contactsData && contactsData[(contactInstance[0])]) || {}
+  })
+  return userContacts
 }
 
 async function getContactsBySocket(socket) {
-  const CInstance = instanceHandler.getInstancesBySocket(socket)
-  if (!CInstance) return false
-  return await getContactsByUID(CInstance.UID)
+  const client_instance = instanceHandler.getInstancesBySocket(socket)
+  if (!client_instance) return false
+  return await getContactsByUID(client_instance.UID)
 }
 
 module.exports = {
@@ -44,44 +48,36 @@ module.exports = {
   injectSocket(socketServer, socket) {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
-      const CInstance = instanceHandler.getInstancesBySocket(this)
-      const client_userRef = databaseHandler.instances.users.child(CInstance.UID), target_userRef = databaseHandler.instances.users.child(UID)
-      if (!CInstance || (CInstance.UID == UID) || !databaseHandler.hasSnapshot(client_userRef) || !databaseHandler.hasSnapshot(target_userRef)) return false
+      const client_instance = instanceHandler.getInstancesBySocket(this)
+      const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
+      if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
+      const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "send") {
-        const client_friendsSnapshot = await databaseHandler.getSnapshot(client_userRef.child("contacts/friends"))
-        const client_friendsSnapshotValue = client_friendsSnapshot.val()
-        const client_blockedSnapshot = await databaseHandler.getSnapshot(client_userRef.child("contacts/blocked"))
-        const client_blockedSnapshotValue = client_blockedSnapshot.val()
-        const target_pendingSnapshot = await databaseHandler.getSnapshot(target_userRef.child("contacts/pending"))
-        const target_pendingSnapshotValue = target_pendingSnapshot.val()
-        const target_blockedSnapshot = await databaseHandler.getSnapshot(target_userRef.child("contacts/blocked"))
-        const target_blockedSnapshotValue = target_blockedSnapshot.val()
-        if (client_friendsSnapshotValue[UID] || client_blockedSnapshotValue[UID] || target_pendingSnapshotValue[(CInstance.UID)] || target_blockedSnapshotValue[(CInstance.UID)]) return false
+        const target_contacts = await getContactsByUID(UID)
+        if (client_contacts.friends[UID] || client_contacts.blocked[UID] || target_contacts.pending[(client_instance.UID)] || target_contacts.blocked[(client_instance.UID)]) return false
         const cDate = new Date()
-        target_userRef.child("contacts/pending").update({
-          [(CInstance.UID)]: cDate
+        target_userRef.child(contactInstances["pending"]).update({
+          [(client_instance.UID)]: cDate
         })
         return true
       }
       else {
-        const client_pendingSnapshot = await databaseHandler.getSnapshot(client_userRef.child("contacts/pending"))
-        const client_pendingSnapshotValue = client_pendingSnapshot.val()
-        if (!client_pendingSnapshotValue[UID]) return false
+        if (!client_contacts.pending[UID]) return false
         if (requestType == "accept") {
           const cDate = new Date()
-          client_userRef.child("contacts/pending").update({
+          client_userRef.child(contactInstances["pending"]).update({
             [UID]: null
           })
-          client_userRef.child("contacts/friends").update({
+          client_userRef.child(contactInstances["friends"]).update({
             [UID]: cDate
           })
-          target_userRef.child("contacts/friends").update({
-            [(CInstance.UID)]: cDate
+          target_userRef.child(contactInstances["friends"]).update({
+            [(client_instance.UID)]: cDate
           })
           return true
         }
         else if (requestType == "reject") {
-          client_userRef.child("contacts/pending").update({
+          client_userRef.child(contactInstances["pending"]).update({
             [UID]: null
           })
           return true
@@ -92,41 +88,40 @@ module.exports = {
 
     socket.on("App:onClientBlockRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
-      const CInstance = instanceHandler.getInstancesBySocket(this)
-      const client_userRef = databaseHandler.instances.users.child(CInstance.UID), target_userRef = databaseHandler.instances.users.child(UID)
-      if (!CInstance || (CInstance.UID == UID) || !databaseHandler.hasSnapshot(client_userRef) || !databaseHandler.hasSnapshot(target_userRef)) return false
-      const client_blockedSnapshot = await databaseHandler.getSnapshot(client_userRef.child("contacts/blocked"))
-      const client_blockedSnapshotValue = client_blockedSnapshot.val()
+      const client_instance = instanceHandler.getInstancesBySocket(this)
+      const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
+      if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
+      const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "block") {
-        if (client_blockedSnapshotValue[UID]) return false
+        if (client_contacts.blocked[UID]) return false
         const cDate = new Date()
-        client_userRef.child("contacts/pending").update({
+        client_userRef.child(contactInstances["pending"]).update({
           [UID]: null
         })
-        client_userRef.child("contacts/friends").update({
+        client_userRef.child(contactInstances["friends"]).update({
           [UID]: null
         })
-        target_userRef.child("contacts/pending").update({
-          [(CInstance.UID)]: null
+        target_userRef.child(contactInstances["pending"]).update({
+          [(client_instance.UID)]: null
         })
-        target_userRef.child("contacts/friends").update({
-          [(CInstance.UID)]: null
+        target_userRef.child(contactInstances["friends"]).update({
+          [(client_instance.UID)]: null
         })
-        client_userRef.child("contacts/blocked").update({
+        client_userRef.child(contactInstances["blocked"]).update({
           [UID]: cDate
         })
-        target_userRef.child("contacts/blocked").update({
-          [(CInstance.UID)]: cDate
+        target_userRef.child(contactInstances["blocked"]).update({
+          [(client_instance.UID)]: cDate
         })
         return true
       }
       else if (requestType == "unblock") {
-        if (!client_blockedSnapshotValue[UID]) return false
-        client_userRef.child("contacts/blocked").update({
+        if (!client_contacts.blocked[UID]) return false
+        client_userRef.child(contactInstances["blocked"]).update({
           [UID]: null
         })
-        target_userRef.child("contacts/blocked").update({
-          [(CInstance.UID)]: null
+        target_userRef.child(contactInstances["blocked"]).update({
+          [(client_instance.UID)]: null
         })
         return true
       }
