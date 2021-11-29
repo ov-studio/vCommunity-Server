@@ -33,7 +33,7 @@ module.exports = {
         const client_blockedSnapshotValue = client_blockedSnapshot.val()
         const target_pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
         const target_pendingSnapshotValue = target_pendingSnapshot.val()
-        if (client_friendsSnapshotValue[UID] || target_pendingSnapshotValue[UID] || client_blockedSnapshotValue[UID]) return false
+        if (client_friendsSnapshotValue[UID] || client_blockedSnapshotValue[UID] || target_pendingSnapshotValue[UID]) return false
         const cDate = new Date()
         databaseHandler.instances.users.child(UID).child("contacts/pending").update({
           [CInstance.UID]: cDate
