@@ -12,9 +12,9 @@
 -- Imports --
 -----------*/
 
+const contactsHandler = require("./contacts")
 const clientInstances = {}
 const socketInstances = {}
-const databaseHandler = require("../database")
 
 
 /*------------
@@ -38,12 +38,15 @@ module.exports = {
   getInstancesByUID: getInstancesByUID,
   getInstancesBySocket: getInstancesBySocket,
 
-  injectSocket(socketServer, socket) {
-    socket.on("App:onClientConnect", function(UID) {
+  async injectSocket(socketServer, socket) {
+    socket.on("App:onClientConnect", async function(UID) {
+      console.log("CONNE?")
       if (!UID) return false
       if (!clientInstances[UID]) clientInstances[UID] = {}
       clientInstances[UID][this] = true
       socketInstances[this] = UID
+      const clientContacts = await contactsHandler.getContactsByUID(UID)
+      this.emit("App:onClientSyncContacts", clientContacts)
     })
 
     socket.on("disconnect", function() {
