@@ -22,11 +22,24 @@ const instanceHandler = require("./instance")
 
 module.exports = {
   initializeSocket(socketServer, socket) {
+    socket.on("App:onClientSendFriendRequest", function(UID) {
+      if (!UID) return false
+      const clientInstances, clientUID = instanceHandler.getInstancesBySocket(this)
+      if (!clientInstance || !clientUID || !databaseHandler.instances.users.hasChild(clientUID) || !databaseHandler.instances.users.hasChild(UID)) return false
+      const cDate = new Date()
+      databaseHandler.instances.users.child(UID).child("contacts").child("pending").update({
+        UID: cDate
+      })
+    })
+
     socket.on("App:onClientAcceptFriendRequest", function(UID) {
       if (!UID) return false
       const clientInstances, clientUID = instanceHandler.getInstancesBySocket(this)
       if (!clientInstance || !clientUID || !databaseHandler.instances.users.hasChild(clientUID) || !databaseHandler.instances.users.hasChild(UID)) return false
       const cDate = new Date()
+      databaseHandler.instances.users.child(clientUID).child("contacts").child("pending").update({
+        UID: null
+      })
       databaseHandler.instances.users.child(clientUID).child("contacts").child("friends").update({
         UID: cDate
       })
