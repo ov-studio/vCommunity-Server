@@ -21,18 +21,24 @@ const databaseHandler = require("../database")
 -- Handlers --
 ------------*/
 
+function getInstancesByUID(UID) {
+  if (!UID || !clientInstances[UID]) return false
+  return clientInstances[UID]
+}
+
+function getInstancesBySocket(socket) {
+  const UID = socketInstances[socket]
+  if (!UID) return false
+  const cInstances = getInstancesByUID(UID)
+  if (!cInstances) return false
+  return {UID: UID, instances: cInstances}
+}
+
 module.exports = {
-  getInstancesByUID(UID) {
-    if (!clientInstances[UID]) return false
-    return clientInstances[UID]
-  },
+  getInstancesByUID: getInstancesByUID,
+  getInstancesBySocket: getInstancesBySocket,
 
-  getInstancesBySocket(socket) {
-    if (!socketInstances[socket] || !clientInstances[(socketInstances[socket])]) return false
-    return {"UID": socketInstances[socket], "Instance": clientInstances[(socketInstances[socket])]}
-  },
-
-  initializeSocket(socketServer, socket) {
+  injectSocket(socketServer, socket) {
     socket.on("App:onClientConnect", function(UID) {
       if (!UID) return false
       if (!clientInstances[UID]) clientInstances[UID] = {}

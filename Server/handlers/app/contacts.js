@@ -20,23 +20,32 @@ const instanceHandler = require("./instance")
 -- Handlers --
 ------------*/
 
-module.exports = {
-  async getContactsByUID(UID) {
-    if (!databaseHandler.instances.users.hasChild(UID)) return false
-    const friendSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/friends").once("value")
-    const friendSnapshotValue = friendSnapshot.val()
-    const pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
-    const pendingSnapshotValue = pendingSnapshot.val()
-    const blockedSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
-    const blockedSnapshotValue = blockedSnapshot.val()
-    return {
-      "friends": friendSnapshotValue,
-      "pending": pendingSnapshotValue,
-      "blocked": blockedSnapshotValue
-    }
-  },
+async function getContactsByUID(UID) {
+  if (!databaseHandler.instances.users.hasChild(UID)) return false
+  const friendSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/friends").once("value")
+  const friendSnapshotValue = friendSnapshot.val()
+  const pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+  const pendingSnapshotValue = pendingSnapshot.val()
+  const blockedSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+  const blockedSnapshotValue = blockedSnapshot.val()
+  return {
+    "friends": friendSnapshotValue,
+    "pending": pendingSnapshotValue,
+    "blocked": blockedSnapshotValue
+  }
+}
 
-  initializeSocket(socketServer, socket) {
+async function getContactsBySocket(socket) {
+  const CInstance = instanceHandler.getInstancesBySocket(socket)
+  if (!CInstance) return false
+  return await getContactsByUID(CInstance.UID)
+}
+
+module.exports = {
+  getContactsByUID: getContactsByUID,
+  getContactsBySocket: getContactsBySocket,
+
+  injectSocket(socketServer, socket) {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const CInstance = instanceHandler.getInstancesBySocket(this)
