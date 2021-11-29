@@ -27,13 +27,13 @@ module.exports = {
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || (CInstance.UID == UID) || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
       if (requestType == "send") {
-        const friendsSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").once("value")
-        const friendsSnapshotValue = friendsSnapshot.val()
-        const pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
-        const pendingSnapshotValue = pendingSnapshot.val()
-        const blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
-        const blockedSnapshotValue = blockedSnapshot.val()
-        if (friendsSnapshotValue[UID] || pendingSnapshotValue[UID] || blockedSnapshotValue[UID]) return false
+        const client_friendsSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").once("value")
+        const client_friendsSnapshotValue = client_friendsSnapshot.val()
+        const client_blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
+        const client_blockedSnapshotValue = client_blockedSnapshot.val()
+        const target_pendingSnapshot = await databaseHandler.instances.users.child(UID).child("contacts/pending").once("value")
+        const target_pendingSnapshotValue = target_pendingSnapshot.val()
+        if (client_friendsSnapshotValue[UID] || target_pendingSnapshotValue[UID] || client_blockedSnapshotValue[UID]) return false
         const cDate = new Date()
         databaseHandler.instances.users.child(UID).child("contacts/pending").update({
           [CInstance.UID]: cDate
@@ -41,9 +41,9 @@ module.exports = {
         return true
       }
       else {
-        const pendingSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").once("value")
-        const pendingSnapshotValue = pendingSnapshot.val()
-        if (!pendingSnapshotValue[UID]) return false
+        const client_pendingSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").once("value")
+        const client_pendingSnapshotValue = client_pendingSnapshot.val()
+        if (!client_pendingSnapshotValue[UID]) return false
         if (requestType == "accept") {
           const cDate = new Date()
           databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").update({
@@ -71,10 +71,10 @@ module.exports = {
       if (!UID || !requestType) return false
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || (CInstance.UID == UID) || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
-      const blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
-      const blockedSnapshotValue = blockedSnapshot.val()
+      const client_blockedSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").once("value")
+      const client_blockedSnapshotValue = client_blockedSnapshot.val()
       if (requestType == "block") {
-        if (blockedSnapshotValue[UID]) return false
+        if (client_blockedSnapshotValue[UID]) return false
         const cDate = new Date()
         databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").update({
           [UID]: null
@@ -97,7 +97,7 @@ module.exports = {
         return true
       }
       else if (requestType == "unblock") {
-        if (!blockedSnapshotValue[UID]) return false
+        if (!client_blockedSnapshotValue[UID]) return false
         databaseHandler.instances.users.child(CInstance.UID).child("contacts/blocked").update({
           [UID]: null
         })
