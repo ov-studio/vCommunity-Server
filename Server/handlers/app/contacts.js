@@ -32,22 +32,22 @@ module.exports = {
       })
     })
 
-    socket.on("App:onClientAcceptFriendRequest", function(UID) {
+    socket.on("App:onClientAcceptFriendRequest", async function(UID) {
       if (!UID) return false
       const CInstance = instanceHandler.getInstancesBySocket(this)
       if (!CInstance || !databaseHandler.instances.users.hasChild(CInstance.UID) || !databaseHandler.instances.users.hasChild(UID)) return false
-      databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").once("value", (snapshot) => {
-        if (!snapshot.val()[UID]) return false
-        const cDate = new Date()
-        databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").update({
-          UID: null
-        })
-        databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").update({
-          UID: cDate
-        })
-        databaseHandler.instances.users.child(UID).child("contacts/friends").update({
-          UID: cDate
-        })
+      const pendingSnapshot = await databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").once("value")
+      const pendingSnapshotValue = pendingSnapshot.val()
+      if (!pendingSnapshotValue[UID]) return false
+      const cDate = new Date()
+      databaseHandler.instances.users.child(CInstance.UID).child("contacts/pending").update({
+        UID: null
+      })
+      databaseHandler.instances.users.child(CInstance.UID).child("contacts/friends").update({
+        UID: cDate
+      })
+      databaseHandler.instances.users.child(UID).child("contacts/friends").update({
+        UID: cDate
       })
     })
   }
