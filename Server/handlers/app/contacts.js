@@ -22,17 +22,12 @@ const instanceHandler = require("./instance")
 
 async function getContactsByUID(UID) {
   const userRef = databaseHandler.instances.users.child(UID)
-  if (!databaseHandler.hasSnapshot(userRef)) return false
-  const friendSnapshot = await databaseHandler.getSnapshot(userRef.child("contacts/friends"))
-  const friendSnapshotValue = friendSnapshot.val()
-  const pendingSnapshot = await databaseHandler.getSnapshot(userRef.child("contacts/pending"))
-  const pendingSnapshotValue = pendingSnapshot.val()
-  const blockedSnapshot = await databaseHandler.getSnapshot(userRef.child("contacts/pending"))
-  const blockedSnapshotValue = blockedSnapshot.val()
+  const contactSnapshot = await databaseHandler.getSnapshot(userRef.child("contacts"))
+  const contactSnapshotValue = (contactSnapshot && contactSnapshot.val()) || false
   return {
-    "friends": friendSnapshotValue,
-    "pending": pendingSnapshotValue,
-    "blocked": blockedSnapshotValue
+    "friends": (contactSnapshotValue && contactSnapshotValue["friends"]) || {},
+    "pending": (contactSnapshotValue && contactSnapshotValue["pending"]) || {},
+    "blocked": (contactSnapshotValue && contactSnapshotValue["blocked"]) || {}
   }
 }
 
