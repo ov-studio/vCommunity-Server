@@ -25,4 +25,4 @@ require("./handlers/database")
 require("./handlers/auth")
 require("./handlers/app/loader")
 */
-console.log(process.env["cert-database"])
+console.log(process.env["cert_database"])
