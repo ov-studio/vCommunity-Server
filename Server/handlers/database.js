@@ -12,6 +12,8 @@
 -- Imports --
 -----------*/
 
+console.log(process.env.test)
+console.log("loading?")
 const databaseServer = require("../servers/database")
 const databaseInstance = databaseServer.database()
 const databaseInstances = {
