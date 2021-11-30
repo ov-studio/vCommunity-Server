@@ -74,7 +74,6 @@ module.exports = {
       if (!client_instance) return false
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
-      console.log("wot 4")
       
       const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "send") {
@@ -86,11 +85,8 @@ module.exports = {
         })
         return true
       } else {
-        console.log("TEST 1")
         if (!client_contacts.pending[UID]) return false
-        console.log("TEST 2")
         if (requestType == "accept") {
-          console.log("TEST 3")
           const cDate = new Date()
           client_userRef.child(contactInstances.pending).update({
             [UID]: null
