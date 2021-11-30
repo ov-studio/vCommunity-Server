@@ -16,6 +16,5 @@ const eventServer = require("../../servers/event")
 const contactsHandler = require("./contacts")
 
 eventServer.on("App:onClientConnect", async function(socket, UID) {
-  //socket.emit("App:onSyncContacts", await contactsHandler.getContactsByUID(UID))
-  console.log(UID)
+  socket.emit("App:onSyncContacts", await contactsHandler.getContactsByUID(UID))
 })
