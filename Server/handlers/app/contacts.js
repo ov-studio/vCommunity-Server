@@ -36,28 +36,28 @@ async function getContactsByUID(UID) {
 }
 
 async function getContactsBySocket(socket) {
-  const client_instance = instanceHandler.getInstancesBySocket(socket)
-  if (!client_instance) return false
-  return await getContactsByUID(client_instance.UID)
+  const socketInstance = instanceHandler.getInstancesBySocket(socket)
+  if (!socketInstance) return false
+  return await getContactsByUID(socketInstance.UID)
 }
 
 async function syncClientContacts(UID, socket) {
   if (!UID && !socket) return false
-  var clientInstances = null
+  var fetchedInstances = null
   if (!UID) {
-    const socketInstances = instanceHandler.getInstancesBySocket(socket)
-    if (socketInstances) {
-      UID = socketInstances.UID
-      clientInstances = socketInstances.instances
+    const socketInstance = instanceHandler.getInstancesBySocket(socket)
+    if (socketInstance) {
+      UID = socketInstance.UID
+      fetchedInstances = socketInstance.instances
     }
   } else {
-    clientInstances = instanceHandler.getInstancesByUID(UID)
+    fetchedInstances = instanceHandler.getInstancesByUID(UID)
   }
-  if (!clientInstances) return false
+  if (!fetchedInstances) return false
 
-  const clientContacts = await getContactsByUID(UID)
-  Object.entries(clientInstances).forEach(async function(clientInstance) {
-    clientInstance[1].emit("App:onSyncContacts", clientContacts) 
+  const fetchedContacts = await getContactsByUID(UID)
+  Object.entries(fetchedInstances).forEach(async function(clientInstance) {
+    clientInstance[1].emit("App:onSyncContacts", fetchedContacts) 
   })
   return true
 }
@@ -71,9 +71,11 @@ module.exports = {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
+      if (!client_instance) return false
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
-
+      console.log("wot 4")
+      
       const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "send") {
         const target_contacts = await getContactsByUID(UID)
@@ -83,10 +85,12 @@ module.exports = {
           [(client_instance.UID)]: cDate
         })
         return true
-      }
-      else {
+      } else {
+        console.log("TEST 1")
         if (!client_contacts.pending[UID]) return false
+        console.log("TEST 2")
         if (requestType == "accept") {
+          console.log("TEST 3")
           const cDate = new Date()
           client_userRef.child(contactInstances.pending).update({
             [UID]: null
@@ -105,13 +109,14 @@ module.exports = {
           })
           return true
         }
-      }
+      }*/
       return false
     })
 
     socket.on("App:onClientBlockRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
+      if (!client_instance) return false
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
   
@@ -138,8 +143,7 @@ module.exports = {
           [(client_instance.UID)]: cDate
         })
         return true
-      }
-      else if (requestType == "unblock") {
+      } else if (requestType == "unblock") {
         if (!client_contacts.blocked[UID]) return false
         client_userRef.child(contactInstances.blocked).update({
           [UID]: null

@@ -27,7 +27,7 @@ function getInstancesByUID(UID) {
 }
 
 function getInstancesBySocket(socket) {
-  const UID = socketInstances[socket]
+  const UID = socketInstances[(socket.id)]
   if (!UID) return false
   const cInstances = getInstancesByUID(UID)
   if (!cInstances) return false
