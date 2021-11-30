@@ -14,6 +14,10 @@
 
 const socketServer = require("../../servers/socket")
 const syncerHandler = require("./syncer")
+const socketDependencies = [
+  require("./instance"),
+  require("./contacts")
+]
 
 
 /*------------
@@ -21,6 +25,7 @@ const syncerHandler = require("./syncer")
 ------------*/
 
 socketServer.of("/app").on("connection", (socket) => {
-  require("./instance").injectSocket(socketServer, socket)
-  require("./contacts").injectSocket(socketServer, socket)
+  socketDependencies.forEach(async function(depenency) {
+    depenency.injectSocket(socketServer, socket)
+  })
 })
