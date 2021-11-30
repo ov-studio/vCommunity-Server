@@ -12,8 +12,6 @@
 -- Imports --
 -----------*/
 
-//var test = JSON.parse(process.env["cert_database"])
-//console.log(test.credentials)
 const databaseServer = require("firebase-admin")
 const databaseCert = JSON.parse(process.env["cert_database"]) || require("../../.cert-database.json")
 databaseServer.initializeApp({
