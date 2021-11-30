@@ -74,7 +74,7 @@ module.exports = {
       if (!client_instance) return false
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
-      
+
       const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "send") {
         const target_contacts = await getContactsByUID(UID)
@@ -83,7 +83,6 @@ module.exports = {
         target_userRef.child(contactInstances.pending).update({
           [(client_instance.UID)]: cDate
         })
-        return true
       } else {
         if (!client_contacts.pending[UID]) return false
         if (requestType == "accept") {
@@ -97,16 +96,19 @@ module.exports = {
           target_userRef.child(contactInstances.friends).update({
             [(client_instance.UID)]: cDate
           })
-          return true
         }
         else if (requestType == "reject") {
           client_userRef.child(contactInstances.pending).update({
             [UID]: null
           })
-          return true
+        }
+        else {
+          return false
         }
       }
-      return false
+      syncClientContacts(client_instance.UID)
+      syncClientContacts(UID)
+      return true
     })
 
     socket.on("App:onClientBlockRequest", async function(UID, requestType) {
@@ -138,7 +140,6 @@ module.exports = {
         target_userRef.child(contactInstances.blocked).update({
           [(client_instance.UID)]: cDate
         })
-        return true
       } else if (requestType == "unblock") {
         if (!client_contacts.blocked[UID]) return false
         client_userRef.child(contactInstances.blocked).update({
@@ -147,9 +148,12 @@ module.exports = {
         target_userRef.child(contactInstances.blocked).update({
           [(client_instance.UID)]: null
         })
-        return true
+      } else {
+        return false
       }
-      return false
+      syncClientContacts(client_instance.UID)
+      syncClientContacts(UID)
+      return true
     })
   }
 }
