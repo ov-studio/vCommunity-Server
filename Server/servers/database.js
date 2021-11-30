@@ -12,6 +12,9 @@
 -- Imports --
 -----------*/
 
+console.log(process.env.test)
+console.log("loading?")
+
 const databaseServer = require("firebase-admin")
 const databaseCert = require("../../.cert-database.json")
 databaseServer.initializeApp({
