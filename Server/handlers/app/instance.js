@@ -52,9 +52,9 @@ module.exports = {
       const socketID = this.id
       const UID = socketInstances[socketID]
       if (!UID || !clientInstances[UID]) return false
-      clientInstances[UID][socketID] = null
-      if (Object.entries(clientInstances[UID]).length <= 0) clientInstances[UID] = null
-      socketInstances[socketID] = null
+      delete clientInstances[UID][socketID]
+      delete socketInstances[socketID]
+      if (Object.entries(clientInstances[UID]).length <= 0) delete clientInstances[UID]
     })
   }
 }
