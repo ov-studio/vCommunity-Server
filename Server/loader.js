@@ -14,6 +14,7 @@
 
 require("./servers/database")
 require("./servers/socket")
+require("./servers/event")
 
 
 /*------------

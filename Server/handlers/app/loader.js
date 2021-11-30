@@ -13,6 +13,7 @@
 -----------*/
 
 const socketServer = require("../../servers/socket")
+const syncerHandler = require("./syncer")
 
 
 /*------------

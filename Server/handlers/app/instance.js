@@ -12,7 +12,7 @@
 -- Imports --
 -----------*/
 
-const contactsHandler = require("./contacts")
+const eventServer = require("../../servers/event")
 const clientInstances = {}
 const socketInstances = {}
 
@@ -44,7 +44,7 @@ module.exports = {
       if (!clientInstances[UID]) clientInstances[UID] = {}
       clientInstances[UID][this] = true
       socketInstances[this] = UID
-      this.emit("App:onSyncContacts", await contactsHandler.getContactsByUID(UID))
+      eventServer.emit("App:onClientConnect", this, UID)
     })
 
     socket.on("disconnect", function() {
