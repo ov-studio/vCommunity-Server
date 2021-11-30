@@ -13,7 +13,7 @@
 -----------*/
 
 const databaseServer = require("firebase-admin")
-const databaseCert = process.env.["cert-database"] || require("../../.cert-database.json")
+const databaseCert = process.env["cert-database"] || require("../../.cert-database.json")
 console.log(databaseCert)
 databaseServer.initializeApp({
   credential: databaseServer.credential.cert(databaseCert.credentials),
