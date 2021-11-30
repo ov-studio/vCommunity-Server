@@ -137,16 +137,10 @@ module.exports = {
         client_userRef.child(contactInstances.blocked).update({
           [UID]: cDate
         })
-        target_userRef.child(contactInstances.blocked).update({
-          [(client_instance.UID)]: cDate
-        })
       } else if (requestType == "unblock") {
         if (!client_contacts.blocked[UID]) return false
         client_userRef.child(contactInstances.blocked).update({
           [UID]: null
-        })
-        target_userRef.child(contactInstances.blocked).update({
-          [(client_instance.UID)]: null
         })
       } else {
         return false
