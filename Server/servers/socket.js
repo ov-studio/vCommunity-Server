@@ -12,9 +12,11 @@
 -- Imports --
 -----------*/
 
-const serverPort = 3001
+const serverPort = process.env.PORT || 3001
 const expressServer = require("express")().use(require("cors")())
-const httpServer = require("http").Server(expressServer).listen(serverPort)
+const httpServer = require("http").Server(expressServer).listen(serverPort, () => {
+  console.log("vClient [Server] | Launched [" + serverPort + "]")
+})
 const socketServer = require("socket.io")(httpServer, {
   cors: {
     origin: "http://localhost:3000",
