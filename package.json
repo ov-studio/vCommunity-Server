@@ -4,7 +4,7 @@
   "author": "ᴏᴠ <crazynuggets@outlook.com> (https://github.com/ov-studio)",
   "license": "GPLV3",
   "scripts": {
-    "start": "node ./server/loader"
+    "start": "node ./Server/loader"
   },
   "dependencies": {
     "cors": "^2.8.5",
