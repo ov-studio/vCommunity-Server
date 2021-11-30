@@ -43,7 +43,7 @@ async function getContactsBySocket(socket) {
 
 async function syncClientContacts(UID, socket) {
   if (!UID && !socket) return false
-  var fetchedInstances = null
+  let fetchedInstances = null
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
     if (socketInstance) {
