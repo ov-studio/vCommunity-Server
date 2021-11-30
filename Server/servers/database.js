@@ -12,15 +12,13 @@
 -- Imports --
 -----------*/
 
-var test = JSON.parse(process.env["cert_database"])
-console.log(test.credentials)
-/*
+//var test = JSON.parse(process.env["cert_database"])
+//console.log(test.credentials)
 const databaseServer = require("firebase-admin")
-const databaseCert = process.env["cert_database"] || require("../../.cert-database.json")
+const databaseCert = JSON.parse(process.env["cert_database"]) || require("../../.cert-database.json")
 databaseServer.initializeApp({
   credential: databaseServer.credential.cert(databaseCert.credentials),
   databaseURL: databaseCert.database
 })
 
 module.exports = databaseServer
-*/
