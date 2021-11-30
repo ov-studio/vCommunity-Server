@@ -12,11 +12,9 @@
 -- Imports --
 -----------*/
 
-console.log(process.env.test)
-console.log("loading?")
-
 const databaseServer = require("firebase-admin")
-const databaseCert = require("../../.cert-database.json")
+const databaseCert = process.env.["cert-database"] || require("../../.cert-database.json")
+console.log(databaseCert)
 databaseServer.initializeApp({
   credential: databaseServer.credential.cert(databaseCert.credentials),
   databaseURL: databaseCert.database
