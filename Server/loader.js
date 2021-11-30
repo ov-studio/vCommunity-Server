@@ -11,18 +11,16 @@
 /*-----------
 -- Servers --
 -----------*/
-/*
+
 require("./servers/database")
 require("./servers/socket")
 require("./servers/event")
-*/
+
 
 /*------------
 -- Handlers --
 ------------*/
-/*
+
 require("./handlers/database")
 require("./handlers/auth")
 require("./handlers/app/loader")
-*/
-console.log(process.env["cert_database"])
