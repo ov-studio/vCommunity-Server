@@ -41,9 +41,31 @@ async function getContactsBySocket(socket) {
   return await getContactsByUID(client_instance.UID)
 }
 
+async function syncClientContacts(UID, socket) {
+  if (!UID && !socket) return false
+  var clientInstances = null
+  if (!UID) {
+    const socketInstances = instanceHandler.getInstancesBySocket(socket)
+    if (socketInstances) {
+      UID = socketInstances.UID
+      clientInstances = socketInstances.instances
+    }
+  } else {
+    clientInstances = instanceHandler.getInstancesByUID(UID)
+  }
+  if (!clientInstances) return false
+
+  const clientContacts = await getContactsByUID(UID)
+  Object.entries(clientInstances).forEach(async function(clientInstance) {
+    clientInstance[1].emit("App:onSyncContacts", clientContacts) 
+  })
+  return true
+}
+
 module.exports = {
   getContactsByUID: getContactsByUID,
   getContactsBySocket: getContactsBySocket,
+  syncClientContacts: syncClientContacts,
 
   injectSocket(socketServer, socket) {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
@@ -51,6 +73,7 @@ module.exports = {
       const client_instance = instanceHandler.getInstancesBySocket(this)
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
+
       const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "send") {
         const target_contacts = await getContactsByUID(UID)
@@ -91,6 +114,7 @@ module.exports = {
       const client_instance = instanceHandler.getInstancesBySocket(this)
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.hasSnapshot(client_userRef) || !await databaseHandler.hasSnapshot(target_userRef)) return false
+  
       const client_contacts = await getContactsByUID(client_instance.UID)
       if (requestType == "block") {
         if (client_contacts.blocked[UID]) return false

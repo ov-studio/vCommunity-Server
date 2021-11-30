@@ -42,16 +42,19 @@ module.exports = {
     socket.on("App:onClientConnect", async function(UID) {
       if (!UID) return false
       if (!clientInstances[UID]) clientInstances[UID] = {}
-      clientInstances[UID][this] = true
-      socketInstances[this] = UID
+      const socketID = this.id
+      clientInstances[UID][socketID] = this
+      socketInstances[socketID] = UID
       eventServer.emit("App:onClientConnect", this, UID)
     })
 
     socket.on("disconnect", function() {
-      if (!socketInstances[this] || !clientInstances[(socketInstances[this])]) return false
-      clientInstances[(socketInstances[this])][this] = null
-      if (Object.entries(clientInstances[(socketInstances[this])]).length <= 0) clientInstances[(socketInstances[this])] = null
-      socketInstances[this] = null
+      const socketID = this.id
+      const UID = socketInstances[socketID]
+      if (!UID || !clientInstances[UID]) return false
+      clientInstances[UID][socketID] = null
+      if (Object.entries(clientInstances[UID]).length <= 0) clientInstances[UID] = null
+      socketInstances[socketID] = null
     })
   }
 }
