@@ -12,6 +12,7 @@
 -- Imports --
 -----------*/
 
+const eventServer = require("../../servers/event")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
 const contactInstances = {
@@ -91,7 +92,6 @@ module.exports = {
           const cDate = new Date()
           const cRoomUID = UID + "/" + (client_instance.UID) //TODO: Only for testing purpoe..
           const cRoomData = {UID: cRoomUID, creationDate: cDate}
-          console.log(cRoomData)
           client_userRef.child(contactInstances.pending).update({
             [UID]: null
           })
@@ -111,8 +111,8 @@ module.exports = {
           return false
         }
       }
-      syncClientContacts(client_instance.UID)
-      syncClientContacts(UID)
+      eventServer.emit("App:Group:Personal:onClientSync", client_instance.UID, null, true)
+      eventServer.emit("App:Group:Personal:onClientSync", UID, null, true)
       return true
     })
 
@@ -150,8 +150,8 @@ module.exports = {
       } else {
         return false
       }
-      syncClientContacts(client_instance.UID)
-      syncClientContacts(UID)
+      eventServer.emit("App:Group:Personal:onClientSync", client_instance.UID, null, true)
+      eventServer.emit("App:Group:Personal:onClientSync", UID, null, true)
       return true
     })
   }

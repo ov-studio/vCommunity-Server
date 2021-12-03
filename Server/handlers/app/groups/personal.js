@@ -12,6 +12,7 @@
 -- Imports --
 -----------*/
 
+const eventServer = require("../../../servers/event")
 const instanceHandler = require("../instance")
 const contactsHandler = require("../contacts")
 
@@ -64,6 +65,7 @@ async function syncClientGroups(UID, socket, syncContacts) {
   })
   return true
 }
+eventServer.on("App:Group:Personal:onClientSync", syncClientGroups)
 
 module.exports = {
   getGroupsByID: getGroupsByID,
