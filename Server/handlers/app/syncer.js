@@ -18,5 +18,5 @@ const personalGroupHandler = require("./groups/personal")
 
 eventServer.on("App:onClientConnect", async function(socket, UID) {
   contactsHandler.syncClientContacts(UID)
-  personalGroupHandler.getRoomsByUID(UID, socket)
+  personalGroupHandler.getGroupsByID(UID, socket)
 })
