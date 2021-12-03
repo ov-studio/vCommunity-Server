@@ -41,21 +41,23 @@ async function getContactsBySocket(socket) {
   return await getContactsByUID(socketInstance.UID)
 }
 
-async function syncClientContacts(UID, socket) {
+async function syncClientContacts(UID, socket, preFetchedInstances, preFetchedContacts) {
   if (!UID && !socket) return false
-  let fetchedInstances = null
-  if (!UID) {
-    const socketInstance = instanceHandler.getInstancesBySocket(socket)
-    if (socketInstance) {
-      UID = socketInstance.UID
-      fetchedInstances = socketInstance.instances
-    }
-  } else {
-    fetchedInstances = instanceHandler.getInstancesByUID(UID)
+  let fetchedInstances = preFetchedInstances || null
+  if (!fetchedInstances) {
+    if (!UID) {
+      const socketInstance = instanceHandler.getInstancesBySocket(socket)
+      if (socketInstance) {
+        UID = socketInstance.UID
+        fetchedInstances = socketInstance.instances
+      }
+    } else {
+      fetchedInstances = instanceHandler.getInstancesByUID(UID)
+    } 
   }
   if (!fetchedInstances) return false
 
-  const fetchedContacts = await getContactsByUID(UID)
+  const fetchedContacts = preFetchedContacts || await getContactsByUID(UID)
   Object.entries(fetchedInstances).forEach(async function(clientInstance) {
     clientInstance[1].emit("App:onSyncContacts", fetchedContacts) 
   })
