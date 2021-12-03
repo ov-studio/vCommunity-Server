@@ -16,7 +16,8 @@ const socketServer = require("../../servers/socket")
 const syncerHandler = require("./syncer")
 const socketDependencies = [
   require("./instance"),
-  require("./contacts")
+  require("./contacts"),
+  require("./groups/personal")
 ]
 
 
