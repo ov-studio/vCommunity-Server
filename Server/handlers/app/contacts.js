@@ -87,14 +87,17 @@ module.exports = {
         if (!client_contacts.pending[UID]) return false
         if (requestType == "accept") {
           const cDate = new Date()
+          const cRoomUID = UID + "/" + (client_instance.UID) //TODO: Only for testing purpoe..
+          const cRoomData = {UID: cRoomUID, creationDate: cDate}
+          console.log(cRoomData)
           client_userRef.child(contactInstances.pending).update({
             [UID]: null
           })
           client_userRef.child(contactInstances.friends).update({
-            [UID]: cDate
+            [UID]: cRoomData
           })
           target_userRef.child(contactInstances.friends).update({
-            [(client_instance.UID)]: cDate
+            [(client_instance.UID)]: cRoomData
           })
         }
         else if (requestType == "reject") {
