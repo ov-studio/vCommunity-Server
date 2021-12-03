@@ -16,8 +16,9 @@ const databaseServer = require("../servers/database")
 const databaseInstance = databaseServer.database()
 const databaseInstances = {
   users: databaseInstance.ref("users"),
+  personalGroups: databaseInstance.ref("personal-groups"),
   privateGroups: databaseInstance.ref("private-groups"),
-  publicGroups: databaseInstance.ref("private-groups"),
+  publicGroups: databaseInstance.ref("public-groups"),
   serverGroups: databaseInstance.ref("server-groups")
 }
 
