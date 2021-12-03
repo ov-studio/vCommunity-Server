@@ -1,6 +1,6 @@
 /node_modules
 /.idea
 /.vagrant
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-error.log*
 .cert-*
