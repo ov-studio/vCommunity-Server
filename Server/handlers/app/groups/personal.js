@@ -65,7 +65,7 @@ async function syncClientGroups(UID, socket, syncContacts) {
   })
   return true
 }
-eventServer.on("App:Group:Personal:onClientSync", syncClientGroups)
+eventServer.on("App:Group:Personal:onSyncClientGroups", syncClientGroups)
 
 module.exports = {
   getGroupsByID: getGroupsByID,

@@ -111,8 +111,8 @@ module.exports = {
           return false
         }
       }
-      eventServer.emit("App:Group:Personal:onClientSync", client_instance.UID, null, true)
-      eventServer.emit("App:Group:Personal:onClientSync", UID, null, true)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", client_instance.UID, null, true)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
       return true
     })
 
@@ -150,8 +150,8 @@ module.exports = {
       } else {
         return false
       }
-      eventServer.emit("App:Group:Personal:onClientSync", client_instance.UID, null, true)
-      eventServer.emit("App:Group:Personal:onClientSync", UID, null, true)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", client_instance.UID, null, true)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
       return true
     })
   }
