@@ -73,7 +73,6 @@ async function syncClientGroups(UID, socket, syncContacts) {
     fetchedGroups.forEach(function(groupData) {
       groupData.groupMessages = {}
       clientInstance[1].join(groupData.groupUID)
-        messageUIDHERE: {message: "someMessage"}
       clientInstance[1].emit("App:onSyncPersonalGroups", groupData) 
     })
   })
