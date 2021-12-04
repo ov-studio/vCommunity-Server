@@ -13,6 +13,7 @@
 -----------*/
 
 const eventServer = require("../../../servers/event")
+const databaseHandler = require("../../database")
 const instanceHandler = require("../instance")
 const contactsHandler = require("../contacts")
 
@@ -73,7 +74,17 @@ module.exports = {
   syncClientGroups: syncClientGroups,
 
   injectSocket(socketServer, socket) {
+    socket.on("App:Group:Personal:onClientActionInput", async function(actionData) {
+      if (!actionData || !actionData.groupUID || !actionData.message || (typeof(actionData.message) != "string") || (actionData.message.length <= 0)) return false
+      const client_instance = instanceHandler.getInstancesBySocket(this)
+      if (!client_instance) return false
+      const client_userRef = databaseHandler.instances.users.child(client_instance.UID)
+      if (!client_instance || !await databaseHandler.hasSnapshot(client_userRef)) return false
 
+      // TODO: INTEGRATED TILL HERE..
+      console.log(actionData)
+      return true
+    })
   }
 }
 
