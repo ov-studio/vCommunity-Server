@@ -40,17 +40,27 @@ async function getGroupsBySocket(socket, preFetchedContacts) {
   return await getGroupsByUID(socketInstance.UID, preFetchedContacts)
 }
 
-function prepareGroupMessage(groupUID, groupMessage) {
-  // TODO: WIP..
-  if (!groupUID && !groupMessage) return false
+
+//* TODO: Handlers WIP*/
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+} 
+
+async function prepareGroupMessage(UID, groupUID, groupMessage) {
+  if (!UID && !groupUID && !groupMessage) return false
+  await sleep(1)
+  const timestamp = new Date().getTime()
   const messageData = {
     groupUID: groupUID,
-    groupMessages: {
-      [new Date()]: {message: groupMessage}
-    }
+    groupMessages: [
+      {ownerUID: UID, messageUID: (UID + timestamp).toString(36), timestamp: timestamp, message: groupMessage}
+    ]
   }
   return messageData
 }
+/////////
 
 async function syncClientGroups(UID, socket, syncContacts) {
   if (!UID && !socket) return false
@@ -71,7 +81,7 @@ async function syncClientGroups(UID, socket, syncContacts) {
   if (syncContacts) contactsHandler.syncClientContacts(UID, socket, fetchedInstances, fetchedContacts)
   Object.entries(fetchedInstances).forEach(async function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
-      groupData.groupMessages = {}
+      groupData.groupMessages = []
       clientInstance[1].join(groupData.groupUID)
       clientInstance[1].emit("App:onSyncPersonalGroups", groupData) 
     })
@@ -93,7 +103,8 @@ module.exports = {
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID)
       if (!client_instance || !await databaseHandler.hasSnapshot(client_userRef)) return false
 
-      socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", prepareGroupMessage(actionData.groupUID, actionData.message))
+      const preparedMessage = await prepareGroupMessage(client_instance.UID, actionData.groupUID, actionData.message)
+      socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", preparedMessage)
       return true
     })
   }
