@@ -60,7 +60,10 @@ async function syncClientGroups(UID, socket, syncContacts) {
   Object.entries(fetchedInstances).forEach(async function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       clientInstance[1].join(groupData.groupUID)
-      groupData.groupMessages = {}
+      groupData.groupMessages = {
+        // TODO: TESTING...
+        messageUIDHERE: {message: "someMessage"}
+      }
       clientInstance[1].emit("App:onSyncPersonalGroups", groupData) 
     })
   })
@@ -81,15 +84,15 @@ module.exports = {
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID)
       if (!client_instance || !await databaseHandler.hasSnapshot(client_userRef)) return false
 
-      // TODO: INTEGRATED TILL HERE..
+      // TODO: INTEGRATED TILL HERE.. WIP
       console.log(actionData)
+      socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", {
+        groupUID: actionData.groupUID,
+        groupMessages: {
+          messageUIDHERE: {message: actionData.message},
+        }
+      })
       return true
     })
   }
 }
-
-/*
-async function getGroupsByID222(UID, socket) {
-  socketServer.of("/app").to("somegroup").emit('roomTestEmit', 'what is going on, party people?');
-}
-*/
