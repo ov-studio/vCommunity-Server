@@ -22,7 +22,7 @@ const contactsHandler = require("../contacts")
 -- Handlers --
 ------------*/
 
-async function getGroupsByID(UID, preFetchedContacts) {
+async function getGroupsByUID(UID, preFetchedContacts) {
   const fetchedContacts = preFetchedContacts || await contactsHandler.getContactsByUID(UID)
   const fetchedGroups = []
   Object.entries(fetchedContacts.friends).forEach(function(contactData) {
@@ -37,7 +37,19 @@ async function getGroupsByID(UID, preFetchedContacts) {
 async function getGroupsBySocket(socket, preFetchedContacts) {
   const socketInstance = instanceHandler.getInstancesBySocket(socket)
   if (!socketInstance) return false
-  return await getGroupsByID(socketInstance.UID, preFetchedContacts)
+  return await getGroupsByUID(socketInstance.UID, preFetchedContacts)
+}
+
+function prepareGroupMessage(groupUID, groupMessage) {
+  // TODO: WIP..
+  if (!groupUID && !groupMessage) return false
+  const messageData = {
+    groupUID: groupUID,
+    groupMessages: {
+      [new Date()]: {message: groupMessage}
+    }
+  }
+  return messageData
 }
 
 async function syncClientGroups(UID, socket, syncContacts) {
@@ -55,15 +67,13 @@ async function syncClientGroups(UID, socket, syncContacts) {
   if (!fetchedInstances) return false
 
   const fetchedContacts = await contactsHandler.getContactsByUID(UID)
-  const fetchedGroups = await getGroupsByID(UID, null, fetchedContacts)
+  const fetchedGroups = await getGroupsByUID(UID, null, fetchedContacts)
   if (syncContacts) contactsHandler.syncClientContacts(UID, socket, fetchedInstances, fetchedContacts)
   Object.entries(fetchedInstances).forEach(async function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
+      groupData.groupMessages = {}
       clientInstance[1].join(groupData.groupUID)
-      groupData.groupMessages = {
-        // TODO: TESTING...
         messageUIDHERE: {message: "someMessage"}
-      }
       clientInstance[1].emit("App:onSyncPersonalGroups", groupData) 
     })
   })
@@ -72,7 +82,7 @@ async function syncClientGroups(UID, socket, syncContacts) {
 eventServer.on("App:Group:Personal:onSyncClientGroups", syncClientGroups)
 
 module.exports = {
-  getGroupsByID: getGroupsByID,
+  getGroupsByUID: getGroupsByUID,
   getGroupsBySocket: getGroupsBySocket,
   syncClientGroups: syncClientGroups,
 
@@ -84,14 +94,7 @@ module.exports = {
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID)
       if (!client_instance || !await databaseHandler.hasSnapshot(client_userRef)) return false
 
-      // TODO: INTEGRATED TILL HERE.. WIP
-      console.log(actionData)
-      socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", {
-        groupUID: actionData.groupUID,
-        groupMessages: {
-          messageUIDHERE: {message: actionData.message},
-        }
-      })
+      socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", prepareGroupMessage(actionData.groupUID, actionData.message))
       return true
     })
   }
