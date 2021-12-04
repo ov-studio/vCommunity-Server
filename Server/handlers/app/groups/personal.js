@@ -13,6 +13,7 @@
 -----------*/
 
 const eventServer = require("../../../servers/event")
+const utilityHandler = require("../../utility")
 const databaseHandler = require("../../database")
 const instanceHandler = require("../instance")
 const contactsHandler = require("../contacts")
@@ -40,27 +41,17 @@ async function getGroupsBySocket(socket, preFetchedContacts) {
   return await getGroupsByUID(socketInstance.UID, preFetchedContacts)
 }
 
-
-//* TODO: Handlers WIP*/
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-} 
-
-async function prepareGroupMessage(UID, groupUID, groupMessage) {
+async function prepareMessage(UID, groupUID, groupMessage) {
   if (!UID && !groupUID && !groupMessage) return false
-  await sleep(1)
+  await utilityHandler.sleep(1)
   const timestamp = new Date().getTime()
-  const messageData = {
+  return {
     groupUID: groupUID,
     groupMessages: [
       {ownerUID: UID, messageUID: (UID + timestamp).toString(36), timestamp: timestamp, message: groupMessage}
     ]
   }
-  return messageData
 }
-/////////
 
 async function syncClientGroups(UID, socket, syncContacts) {
   if (!UID && !socket) return false
@@ -103,7 +94,7 @@ module.exports = {
       const client_userRef = databaseHandler.instances.users.child(client_instance.UID)
       if (!client_instance || !await databaseHandler.hasSnapshot(client_userRef)) return false
 
-      const preparedMessage = await prepareGroupMessage(client_instance.UID, actionData.groupUID, actionData.message)
+      const preparedMessage = await prepareMessage(client_instance.UID, actionData.groupUID, actionData.message)
       socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", preparedMessage)
       return true
     })
