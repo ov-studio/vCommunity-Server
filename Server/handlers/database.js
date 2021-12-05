@@ -21,7 +21,6 @@ const databaseInstances = {
       constructor: async function(payload) {
         if (!payload.uid || !payload.username || !payload.dob) return false
         const preparedQuery = prepareQuery(payload)
-        console.log(payload)
         const result = await databaseServer.query(`INSERT INTO ${databaseInstances.users.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         if (!result) return false
         const dependencies = Object.entries(databaseInstances.users.dependencies)
