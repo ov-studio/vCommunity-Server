@@ -34,9 +34,9 @@ socketServer.of("/auth").on("connection", (socket) => {
 
     if (!result || !result.uid) return socketReference.emit("Auth:onClientRegister", {error: result.code})
     result = await databaseHandler.instances.users.constructor({
-      uid: result.uid,
+      UID: result.uid,
       username: userData.username,
-      dob: JSON.stringify(userData.birthDate)
+      DOB: JSON.stringify(userData.birthDate)
     })
     if (!result) {
       authServer.auth().deleteUser(result.uid)

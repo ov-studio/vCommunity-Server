@@ -13,6 +13,7 @@
 -----------*/
 
 const eventServer = require("../../servers/event")
+const utilityHandler = require("../utility")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
 const contactInstances = {
@@ -27,11 +28,20 @@ const contactInstances = {
 ------------*/
 
 async function getContactsByUID(UID) {
-  const userRef = databaseHandler.instances.users.child(UID)
-  const contactsData = await databaseHandler.getSnapshot(userRef.child("contacts"), true)
+  const contactRef = databaseHandler.instances.users.getDependencyRef("contacts", UID)
+  var contactDatas = await databaseHandler.server.query(`SELECT * FROM ${contactRef}`)
+  contactDatas = (contactDatas && (contactDatas.rows.length > 0) && contactDatas.rows) || false
+  if (contactDatas) {
+    contactDatas = utilityHandler.lodash.groupBy(contactDatas, function(contactData) {
+      const contactState = contactData.state
+      delete contactData.state
+      return contactState
+    })
+  }
+
   const userContacts = {}
   Object.entries(contactInstances).forEach(function(contactInstance) {
-    userContacts[(contactInstance[0])] = (contactsData && contactsData[(contactInstance[0])]) || {}
+    userContacts[(contactInstance[0])] = (contactDatas && contactDatas[(contactInstance[0])]) || {}
   })
   return userContacts
 }

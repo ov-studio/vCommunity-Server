@@ -13,6 +13,8 @@
 -------------------*/
 
 module.exports = {
+  lodash: require("lodash"),
+
   sleep(milliseconds) {
     if (!milliseconds) return false
     return new Promise((resolve) => {
