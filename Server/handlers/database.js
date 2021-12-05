@@ -17,32 +17,38 @@ const databaseInstances = {
   users: {
     ref: "APP_USERS",
     prefix: "USR",
-    constructor: async function(payload) {
-      if (!payload.UID || !payload.username || !payload.dob) throw "query/constructor/failed"
-      const preparedQuery = prepareQuery(payload)
-      const result = await databaseServer.query(`INSERT INTO ${databaseInstances.users.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-      if (!result) throw "query/constructor/failed"
-      const dependencies = Object.entries(databaseInstances.users.dependencies)
-      for (const dependency in dependencies) {
-        const result = await dependencies[dependency][1].constructor(databaseInstances.users.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
-        if (!result) throw "query/constructor/failed"
-      }
-      return true
-    },
-    getDependencyRef: function(dependency, UID) {
-      if (!dependency || !databaseInstances.users.dependencies[dependency] || !UID) return false
-      return databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix
-    },
+    functions: {
+      constructor: async function(payload) {
+        if (!payload.UID || !payload.username || !payload.DOB) return false
+        const preparedQuery = prepareQuery(payload)
+        console.log(payload)
+        const result = await databaseServer.query(`INSERT INTO ${databaseInstances.users.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        if (!result) return false
+        const dependencies = Object.entries(databaseInstances.users.dependencies)
+        for (const dependency in dependencies) {
+          await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
+        }
+        return true
+      },
 
+      getDependencyRef: function(dependency, UID) {
+        if (!dependency || !databaseInstances.users.dependencies[dependency] || !UID) return false
+        return databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix
+      },
+
+      isUserExisting: function(UID) {
+        if (!UID) return false
+        const result = databaseServer.query(`SELECT * FROM ${databaseInstances.users.ref} WHERE UID = ${UID}`)
+        return (result && result.rows > 0) || false
+      },
+    },
     dependencies: {
       contacts: {
         prefix: "CNTCTS",
-        constructor: function(ref, payload) {
-          return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}(contacts TEXT PRIMARY KEY, state TEXT NOT NULL, DOC timestamp with time zone DEFAULT now())`)
-        },
-        getRef: function(UID) {
-          if (!UID) return false
-          return databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies.contacts.prefix
+        functions: {
+          constructor: function(ref, payload) {
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}(contacts TEXT PRIMARY KEY, state TEXT NOT NULL, DOC timestamp with time zone DEFAULT now())`)
+          }
         }
       }
     }

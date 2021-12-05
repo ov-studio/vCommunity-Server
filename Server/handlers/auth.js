@@ -25,22 +25,29 @@ socketServer.of("/auth").on("connection", (socket) => {
   socket.on("Auth:onClientRegister", async function(userData) {
     if (!userData) return false
     const socketReference = this
-    let result = await authServer.auth().createUser({
+    var authResult = false
+    await authServer.auth().createUser({
       email: userData.email,
       password: userData.password,
       emailVerified: false,
       disabled: false
     })
+    .then(function(user) {
+      authResult = user
+    })
+    .catch(function(error) {
+      authResult = error
+    })
 
-    if (!result || !result.uid) return socketReference.emit("Auth:onClientRegister", {error: result.code})
-    result = await databaseHandler.instances.users.constructor({
-      UID: result.uid,
+    if (!authResult.uid) return socketReference.emit("Auth:onClientRegister", {error: authResult.code})
+    var constructorResult = await databaseHandler.instances.users.functions.constructor({
+      UID: authResult.uid,
       username: userData.username,
       DOB: JSON.stringify(userData.birthDate)
     })
-    if (!result) {
-      authServer.auth().deleteUser(result.uid)
-      return socketReference.emit("Auth:onClientRegister", {error: result})
+    if (!constructorResult) {
+      authServer.auth().deleteUser(authResult.uid)
+      return socketReference.emit("Auth:onClientRegister", {error: "query/constructor/failed"})
     }
     socketReference.emit("Auth:onClientRegister", {success: true})
   })
