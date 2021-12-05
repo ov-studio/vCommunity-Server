@@ -82,6 +82,8 @@ module.exports = {
   instances: databaseInstances,
   prepareQuery: prepareQuery,
 
+  //TODO: REMOVE THIS...LATER
+  /*
   async hasSnapshot(snapshotURL) {
     if (!snapshotURL) return false
     const snapshot = await snapshotURL.once("value")
@@ -95,4 +97,5 @@ module.exports = {
     if (!fetchValue) return snapshot
     else return snapshot.val()
   }
+  */
 }
