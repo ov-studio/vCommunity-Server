@@ -28,11 +28,11 @@ const contactInstances = {
 ------------*/
 
 async function getContactsByUID(UID) {
-  const contactRef = databaseHandler.instances.users.getDependencyRef("contacts", UID)
-  var contactDatas = await databaseHandler.server.query(`SELECT * FROM ${contactRef}`)
-  contactDatas = (contactDatas && (contactDatas.rows.length > 0) && contactDatas.rows) || false
-  if (contactDatas) {
-    contactDatas = utilityHandler.lodash.groupBy(contactDatas, function(contactData) {
+  var contactsData = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.getDependencyRef("contacts", UID)}`)
+  console.log(contactsData)
+  contactsData = (contactsData && (contactsData.rows.length > 0) && contactsData.rows) || false
+  if (contactsData) {
+    contactsData = utilityHandler.lodash.groupBy(contactsData, function(contactData) {
       const contactState = contactData.state
       delete contactData.state
       return contactState
@@ -41,7 +41,7 @@ async function getContactsByUID(UID) {
 
   const userContacts = {}
   Object.entries(contactInstances).forEach(function(contactInstance) {
-    userContacts[(contactInstance[0])] = (contactDatas && contactDatas[(contactInstance[0])]) || {}
+    userContacts[(contactInstance[0])] = (contactsData && contactsData[(contactInstance[0])]) || {}
   })
   return userContacts
 }
