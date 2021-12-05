@@ -32,7 +32,7 @@ socketServer.of("/auth").on("connection", (socket) => {
       disabled: false
     })
 
-    if (!result) return socketReference.emit("Auth:onClientRegister", {error: result.code})
+    if (!result || !result.uid) return socketReference.emit("Auth:onClientRegister", {error: result.code})
     result = await databaseHandler.instances.users.constructor({
       uid: result.uid,
       username: userData.username,
