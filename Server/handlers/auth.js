@@ -12,7 +12,7 @@
 -- Imports --
 -----------*/
 
-const databaseServer = require("../servers/database")
+const {authServer} = require("../servers/database")
 const socketServer = require("../servers/socket")
 const databaseHandler = require("./database")
 
@@ -22,24 +22,26 @@ const databaseHandler = require("./database")
 ------------*/
 
 socketServer.of("/auth").on("connection", (socket) => {
-  socket.on("Auth:onClientRegister", function(userData) {
+  socket.on("Auth:onClientRegister", async function(userData) {
     if (!userData) return false
     const socketReference = this
-    databaseServer.auth().createUser({
+    let result = await authServer.auth().createUser({
       email: userData.email,
       password: userData.password,
-      displayName: userData.username,
       emailVerified: false,
       disabled: false
     })
-    .then(function(user) {
-      databaseHandler.instances.users.child(user.uid).set({
-        birthDate: userData.birthDate
-      })
-      socketReference.emit("Auth:onClientRegister", {success: true})
+
+    if (!result) return socketReference.emit("Auth:onClientRegister", {error: result.code})
+    result = await databaseHandler.instances.users.constructor({
+      uid: result.uid,
+      username: userData.username,
+      dob: JSON.stringify(userData.birthDate)
     })
-    .catch(function(error) {
-      socketReference.emit("Auth:onClientRegister", {error: error.code})
-    })
+    if (!result) {
+      authServer.auth().deleteUser(result.uid)
+      return socketReference.emit("Auth:onClientRegister", {error: result})
+    }
+    socketReference.emit("Auth:onClientRegister", {success: true})
   })
 })

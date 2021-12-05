@@ -12,11 +12,15 @@
 -- Imports --
 -----------*/
 
-const databaseServer = require("firebase-admin")
+const databaseModule = require("pg")
+const authServer = require("firebase-admin")
 const databaseCert = (process.env["cert_database"] && JSON.parse(process.env["cert_database"])) || require("../../.cert-database.json")
-databaseServer.initializeApp({
-  credential: databaseServer.credential.cert(databaseCert.credentials),
-  databaseURL: databaseCert.database
+const databaseServer = new databaseModule.Pool(databaseCert.database)
+authServer.initializeApp({
+  credential: authServer.credential.cert(databaseCert.auth),
 })
 
-module.exports = databaseServer
+module.exports = {
+  authServer,
+  databaseServer
+}
