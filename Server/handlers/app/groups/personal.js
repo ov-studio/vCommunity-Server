@@ -55,6 +55,7 @@ async function prepareMessage(UID, groupUID, groupMessage) {
 
 async function syncClientGroups(UID, socket, syncContacts) {
   if (!UID && !socket) return false
+  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = null
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)

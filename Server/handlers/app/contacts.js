@@ -28,7 +28,6 @@ const contactInstances = {
 ------------*/
 
 async function getContactsByUID(UID) {
-  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   var contactsData = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}`)
   contactsData = (contactsData && (contactsData.rows.length > 0) && contactsData.rows) || false
   if (contactsData) {
@@ -54,6 +53,7 @@ async function getContactsBySocket(socket) {
 
 async function syncClientContacts(UID, socket, preFetchedInstances, preFetchedContacts) {
   if (!UID && !socket) return false
+  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = preFetchedInstances || null
   if (!fetchedInstances) {
     if (!UID) {
