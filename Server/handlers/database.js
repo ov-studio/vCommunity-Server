@@ -85,7 +85,7 @@ function prepareQuery(queryDatas) {
   Object.entries(queryDatas).forEach(function(queryData) {
     valueIDs += (valueID == 0) ? `$1` : `, $${valueID + 1}`
     valueID = valueID + 1
-    columns.push(queryData[0])
+    columns.push("\"" + String(queryData[0]) + "\"")
     values.push(queryData[1])
   })
   return {columns, valueIDs, values}
