@@ -90,9 +90,7 @@ module.exports = {
     socket.on("App:Group:Personal:onClientActionInput", async function(actionData) {
       if (!actionData || !actionData.groupUID || !actionData.message || (typeof(actionData.message) != "string") || (actionData.message.length <= 0)) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
-      if (!client_instance) return false
-      const client_userRef = databaseHandler.instances.users.child(client_instance.UID)
-      if (!client_instance || !await databaseHandler.hasSnapshot(client_userRef)) return false
+      if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
 
       const preparedMessage = await prepareMessage(client_instance.UID, actionData.groupUID, actionData.message)
       socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", preparedMessage)
