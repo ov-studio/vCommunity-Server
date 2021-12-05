@@ -29,7 +29,6 @@ const contactInstances = {
 
 async function getContactsByUID(UID) {
   var contactsData = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.getDependencyRef("contacts", UID)}`)
-  console.log(contactsData)
   contactsData = (contactsData && (contactsData.rows.length > 0) && contactsData.rows) || false
   if (contactsData) {
     contactsData = utilityHandler.lodash.groupBy(contactsData, function(contactData) {
