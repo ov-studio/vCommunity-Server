@@ -46,7 +46,7 @@ const databaseInstances = {
         prefix: "CNTCTS",
         functions: {
           constructor: function(ref, payload) {
-            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS "${ref}"("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
           }
         }
       }
@@ -54,22 +54,22 @@ const databaseInstances = {
   },
 
   personalGroups: {
-    ref: "APP_PERSONAL_GROUPS",
+    ref: "\"APP_PERSONAL_GROUPS\"",
     prefix: "PRSNLGRP"
   },
 
   privateGroups: {
-    ref: "APP_PRIVATE_GROUPS",
+    ref: "\"APP_PRIVATE_GROUPS\"",
     prefix: "PRVTEGRP"
   },
 
   publicGroups: {
-    ref: "APP_PUBLIC_GROUPS",
+    ref: "\"APP_PUBLIC_GROUPS\"",
     prefix: "PBLCGRP"
   },
 
   serverGroups: {
-    ref: "APP_SERVER_GROUPS",
+    ref: "\"APP_SERVER_GROUPS\"",
     prefix: "SRVRGRP"
   }
 }
@@ -94,22 +94,5 @@ function prepareQuery(queryDatas) {
 module.exports = {
   server: databaseServer,
   instances: databaseInstances,
-  prepareQuery: prepareQuery,
-
-  //TODO: REMOVE THIS...LATER
-  /*
-  async hasSnapshot(snapshotURL) {
-    if (!snapshotURL) return false
-    const snapshot = await snapshotURL.once("value")
-    return (snapshot && snapshot.exists() && true) || false
-  },
-
-  async getSnapshot(snapshotURL, fetchValue) {
-    if (!snapshotURL) return false
-    const snapshot = await snapshotURL.once("value")
-    if (!snapshot || !snapshot.exists()) return false
-    if (!fetchValue) return snapshot
-    else return snapshot.val()
-  }
-  */
+  prepareQuery: prepareQuery
 }
