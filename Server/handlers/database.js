@@ -19,13 +19,13 @@ const databaseInstances = {
     prefix: "USR",
     functions: {
       constructor: async function(payload) {
-        if (!payload.uid || !payload.username || !payload.dob) return false
+        if (!payload.UID || !payload.username || !payload.DOB) return false
         const preparedQuery = prepareQuery(payload)
         const result = await databaseServer.query(`INSERT INTO ${databaseInstances.users.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         if (!result) return false
         const dependencies = Object.entries(databaseInstances.users.dependencies)
         for (const dependency in dependencies) {
-          await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.uid), payload)
+          await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
         }
         return true
       },
@@ -37,7 +37,7 @@ const databaseInstances = {
 
       isUserExisting: async function(UID) {
         if (!UID) return false
-        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.ref} WHERE uid = '${UID}'`)
+        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.ref} WHERE "UID" = '${UID}'`)
         return (result && result.rows.length > 0) || false
       },
     },
@@ -46,7 +46,7 @@ const databaseInstances = {
         prefix: "CNTCTS",
         functions: {
           constructor: function(ref, payload) {
-            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}(contacts TEXT PRIMARY KEY, state TEXT NOT NULL, doc timestamp with time zone DEFAULT now())`)
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
           }
         }
       }
@@ -73,10 +73,10 @@ const databaseInstances = {
     prefix: "SRVRGRP"
   }
 }
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.ref}(uid TEXT PRIMARY KEY, username TEXT NOT NULL, dob JSON NOT NULL, doc timestamp with time zone DEFAULT now())`)
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.personalGroups.ref}(uid BIGSERIAL PRIMARY KEY, doc timestamp with time zone DEFAULT now())`)
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.publicGroups.ref}(uid BIGSERIAL PRIMARY KEY, doc timestamp with time zone DEFAULT now())`)
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.serverGroups.ref}(uid BIGSERIAL PRIMARY KEY, doc timestamp with time zone DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.ref}("UID" TEXT PRIMARY KEY, username TEXT NOT NULL, "DOB" JSON NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.personalGroups.ref}("UID" BIGSERIAL PRIMARY KEY, "DOC" timestamp with time zone DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.publicGroups.ref}("UID" BIGSERIAL PRIMARY KEY, "DOC" timestamp with time zone DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.serverGroups.ref}("UID" BIGSERIAL PRIMARY KEY, "DOC" timestamp with time zone DEFAULT now())`)
 
 function prepareQuery(queryDatas) {
   if (!queryDatas) return false
