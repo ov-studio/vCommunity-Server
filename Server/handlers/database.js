@@ -146,6 +146,7 @@ databaseInstances.serverGroups = {
   REF: "\"APP_SERVER_GROUPS\"",
   prefix: "srvrgrp"
 }
+
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.REF}("UID" TEXT PRIMARY KEY, "username" TEXT NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.personalGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "REF" TEXT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.publicGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
