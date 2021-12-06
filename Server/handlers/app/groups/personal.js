@@ -23,9 +23,17 @@ const contactsHandler = require("../contacts")
 -- Handlers --
 ------------*/
 
-async function getGroupsByUID(UID) {
-  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
+async function getUserGroups(UID, socket) {
+  if (!UID && !socket) return false
+  if (!UID) {
+    const socketInstance = instanceHandler.getInstancesBySocket(socket)
+    if (!socketInstance) return false
+    UID = socketInstance.UID
+  }
+  if (!UID) return false
+
   const fetchedContacts = await contactsHandler.getUserContacts(UID, null, "friends")
+  if (!fetchedContacts) return false
   const fetchedGroups = []
   Object.entries(fetchedContacts).forEach(function(contactData) {
     fetchedGroups.push({
@@ -34,12 +42,6 @@ async function getGroupsByUID(UID) {
     })
   })
   return fetchedGroups
-}
-
-async function getGroupsBySocket(socket) {
-  const socketInstance = instanceHandler.getInstancesBySocket(socket)
-  if (!socketInstance) return false
-  return await getGroupsByUID(socketInstance.UID)
 }
 
 async function prepareMessage(UID, groupUID, groupMessage) {
@@ -69,7 +71,7 @@ async function syncUserGroups(UID, socket) {
   }
   if (!fetchedInstances) return false
 
-  const fetchedGroups = await getGroupsByUID(UID, null)
+  const fetchedGroups = await getUserGroups(UID)
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       groupData.groupMessages = []
@@ -82,8 +84,7 @@ async function syncUserGroups(UID, socket) {
 eventServer.on("App:Group:Personal:onSyncClientGroups", syncUserGroups)
 
 module.exports = {
-  getGroupsByUID,
-  getGroupsBySocket,
+  getUserGroups,
   syncUserGroups,
 
   injectSocket(socketServer, socket) {

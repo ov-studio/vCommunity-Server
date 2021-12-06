@@ -21,14 +21,16 @@ const instanceHandler = require("./instance")
 -- Handlers --
 ------------*/
 
-async function getUserContacts(UID, socket, contactType) {
+function getUserContacts(UID, socket, contactType) {
   if (!UID && !socket) return false
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
     if (!socketInstance) return false
     UID = socketInstance.UID
   }
-  return (UID && await databaseHandler.instances.users.dependencies.contacts.functions.getUserContacts(UID, contactType)) || false
+  if (!UID) return false
+
+  return databaseHandler.instances.users.dependencies.contacts.functions.getUserContacts(UID, contactType)
 }
 
 async function syncUserContacts(UID, socket) {
