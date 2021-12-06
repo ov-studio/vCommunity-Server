@@ -85,7 +85,6 @@ module.exports = {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
-      if (!client_instance) return false
       //const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
 
@@ -131,34 +130,28 @@ module.exports = {
     socket.on("App:onClientBlockRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
-      if (!client_instance) return false
-      //const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
 
-      //TODO: ..
-      const client_contacts = await getContactsByUID(client_instance.UID)
+      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+      queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
       if (requestType == "block") {
-        if (client_contacts.blocked[UID]) return false
+        if (queryResult && (queryResult.state == "blocked")) return false
         const cDate = new Date()
-        client_userRef.child(contactInstances.pending).update({
-          [UID]: null
+        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+        var preparedQuery = prepareQuery({
+          UID: UID,
+          state: "blocked"
         })
-        client_userRef.child(contactInstances.friends).update({
-          [UID]: null
-        })
-        target_userRef.child(contactInstances.pending).update({
-          [(client_instance.UID)]: null
-        })
-        target_userRef.child(contactInstances.friends).update({
-          [(client_instance.UID)]: null
-        })
-        client_userRef.child(contactInstances.blocked).update({
-          [UID]: cDate
-        })
+        await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
+        queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
+        if (queryResult && (queryResult.state != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
       } else if (requestType == "unblock") {
-        if (!client_contacts.blocked[UID]) return false
-        client_userRef.child(contactInstances.blocked).update({
-          [UID]: null
+        if (queryResult && (queryResult.state != "blocked")) return false
+        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+        var preparedQuery = prepareQuery({
+          UID: UID,
+          state: "blocked"
         })
       } else {
         return false
