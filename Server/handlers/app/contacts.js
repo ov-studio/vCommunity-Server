@@ -25,10 +25,10 @@ const contactTypes = {"friends", "pending", "blocked"}
 
 async function getContactsByUID(UID) {
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
-  var contactsData = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}`)
-  contactsData = (contactsData && (contactsData.rows.length > 0) && contactsData.rows[0]) || false
-  if (contactsData) {
-    contactsData = utilityHandler.lodash.groupBy(contactsData, function(contactData) {
+  var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}`)
+  queryResult = databaseHandler.fetchSoloResult(queryResult)
+  if (queryResult) {
+    queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
       const contactState = contactData.state
       delete contactData.state
       return contactState
@@ -37,7 +37,7 @@ async function getContactsByUID(UID) {
 
   const userContacts = {}
   contactTypes.forEach(function(contactInstance) {
-    userContacts[contactInstance] = (contactsData && contactsData[contactInstance]) || {}
+    userContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
   })
   return userContacts
 }
