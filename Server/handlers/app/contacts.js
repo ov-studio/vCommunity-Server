@@ -28,15 +28,15 @@ async function getContactsByUID(UID, contactType) {
   if (!contactType && (contactTypes.indexOf(contactType) == -1)) return false
 
   if (contactType) {
-    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE state = '${contactType}'`)
+    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE type = '${contactType}'`)
     return (queryResult && (queryResult.rows.length > 0) && queryResult) || false
   }
   var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}`)
   if (queryResult && (queryResult.rows.length > 0)) {
     queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
-      const contactState = contactData.state
-      delete contactData.state
-      return contactState
+      const contactType = contactData.type
+      delete contactData.type
+      return contactType
     })
   }
   const userContacts = {}
@@ -90,17 +90,17 @@ module.exports = {
       var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       queryResult = databaseHandler.fetchSoloResult(queryResult)
       if (requestType == "send") {
-        if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
+        if (queryResult && ((queryResult.type == "friends") || (queryResult.type == "blocked"))) return false
         queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
-        if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
+        if (queryResult && ((queryResult.type == "friends") || (queryResult.type == "blocked"))) return false
         var preparedQuery = databaseHandler.prepareQuery({
           UID: UID,
-          state: "pending"
+          type: "pending"
         })
         await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
       } else {
-        if (!queryResult || (queryResult.state != "pending")) return false
+        if (!queryResult || (queryResult.type != "pending")) return false
         if (requestType == "accept") {
           const groupUID = await databaseHandler.instances.personalGroups.functions.constructor({
             senderUID: UID,
@@ -110,14 +110,14 @@ module.exports = {
           await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
           var preparedQuery = databaseHandler.prepareQuery({
             UID: UID,
-            state: "friends",
+            type: "friends",
             group: groupUID.UID
           })
           await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
           await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
           preparedQuery = databaseHandler.prepareQuery({
             UID: CInstances.UID,
-            state: "friends",
+            type: "friends",
             group: groupUID.UID
           })
           await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
@@ -141,19 +141,19 @@ module.exports = {
       queryResult = databaseHandler.fetchSoloResult(queryResult)
       if (requestType == "block") {
         if (queryResult) {
-          if (queryResult.state == "blocked") return false 
+          if (queryResult.type == "blocked") return false 
           else await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
         }
         var preparedQuery = databaseHandler.prepareQuery({
           UID: UID,
-          state: "blocked"
+          type: "blocked"
         })
         await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
-        if (queryResult && (queryResult.state != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
+        if (queryResult && (queryResult.type != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
       } else if (requestType == "unblock") {
-        if (queryResult && (queryResult.state != "blocked")) return false
+        if (queryResult && (queryResult.type != "blocked")) return false
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       } else {
         return false
