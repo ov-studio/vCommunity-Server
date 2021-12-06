@@ -135,8 +135,10 @@ module.exports = {
       var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
       queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
       if (requestType == "block") {
-        if (queryResult && (queryResult.state == "blocked")) return false
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+        if (queryResult) {
+          if (queryResult.state == "blocked") return false 
+          else await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+        }
         var preparedQuery = prepareQuery({
           UID: UID,
           state: "blocked"
