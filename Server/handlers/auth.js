@@ -26,20 +26,17 @@ socketServer.of("/auth").on("connection", (socket) => {
     if (!userData) return false
     const socketReference = this
     var authResult = false
-    await authServer.auth().createUser({
-      email: userData.email,
-      password: userData.password,
-      emailVerified: false,
-      disabled: false
-    })
-    .then(function(user) {
-      authResult = user
-    })
-    .catch(function(error) {
-      authResult = error
-    })
+    try {
+      authResult = await authServer.auth().createUser({
+        email: userData.email,
+        password: userData.password,
+        emailVerified: false,
+        disabled: false
+      })
+    } catch(error) {
+      return socketReference.emit("Auth:onClientRegister", {error: authResult.code})
+    }
 
-    if (!authResult.uid) return socketReference.emit("Auth:onClientRegister", {error: authResult.code})
     var constructorResult = await databaseHandler.instances.users.functions.constructor({
       UID: authResult.uid,
       username: userData.username,
