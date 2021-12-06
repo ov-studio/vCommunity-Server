@@ -28,12 +28,12 @@ databaseInstances.users = {
 
       const dependencies = Object.entries(databaseInstances.users.dependencies)
       for (const dependency in dependencies) {
-        await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID))
+        await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
       }
       return true
     },
 
-    getDependencyRef: function(dependency, UID) {
+    getDependencyREF: function(dependency, UID) {
       if (!dependency || !databaseInstances.users.dependencies[dependency] || !UID) return false
       return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix + "\""
     },
@@ -60,10 +60,10 @@ databaseInstances.users = {
           if (!contactType && (databaseInstances.users.dependencies.contacts.contactTypes.indexOf(contactType) == -1)) return false
 
           if (contactType) {
-            var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyRef("contacts", UID)} WHERE type = '${contactType}'`)
+            var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyREF("contacts", UID)} WHERE type = '${contactType}'`)
             return (queryResult && (queryResult.rows.length > 0) && queryResult) || false
           }
-          var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyRef("contacts", UID)}`)
+          var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyREF("contacts", UID)}`)
           if (queryResult && (queryResult.rows.length > 0)) {
             queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
               const contactType = contactData.type
@@ -71,11 +71,11 @@ databaseInstances.users = {
               return contactType
             })
           }
-          const userContacts = {}
+          const fetchedContacts = {}
           databaseInstances.users.dependencies.contacts.contactTypes.forEach(function(contactInstance) {
-            userContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
+            fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
           })
-          return userContacts
+          return fetchedContacts
         }
       }
     }
@@ -103,12 +103,12 @@ databaseInstances.personalGroups = {
       payload.UID = queryResult.UID
       const dependencies = Object.entries(databaseInstances.personalGroups.dependencies)
       for (const dependency in dependencies) {
-        await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyRef(dependencies[dependency][0], payload.UID))
+        await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
       }
       return payload.UID
     },
 
-    getDependencyRef: function(dependency, UID) {
+    getDependencyREF: function(dependency, UID) {
       if (!dependency || !databaseInstances.personalGroups.dependencies[dependency] || !UID) return false
       return "\"" + databaseInstances.personalGroups.prefix + "_" + UID + "_" + databaseInstances.personalGroups.dependencies[dependency].prefix + "\""
     },
