@@ -16,7 +16,7 @@ const eventServer = require("../../servers/event")
 const utilityHandler = require("../utility")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
-const contactTypes = {"friends", "pending", "blocked"}
+const contactTypes = ["friends", "pending", "blocked"]
 
 
 /*------------
