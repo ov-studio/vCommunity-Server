@@ -12,17 +12,17 @@
 -- Imports --
 -----------*/
 
-const {databaseServer} = require("../servers/database")
+const {databaseServer, isTableExisting, prepareQuery, fetchSoloResult} = require("../servers/database")
 const databaseInstances = {
   users: {
-    ref: "APP_USERS",
+    REF: "\"APP_USERS\"",
     prefix: "usr",
     functions: {
       constructor: async function(payload) {
         if (!payload.UID || !payload.username || !payload.DOB) return false
         const preparedQuery = prepareQuery(payload)
-        const result = await databaseServer.query(`INSERT INTO ${databaseInstances.users.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        if (!result) return false
+        const queryResult = await databaseServer.query(`INSERT INTO ${databaseInstances.users.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        if (!queryResult) return false
         const dependencies = Object.entries(databaseInstances.users.dependencies)
         for (const dependency in dependencies) {
           await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
@@ -37,8 +37,8 @@ const databaseInstances = {
 
       isUserExisting: async function(UID) {
         if (!UID) return false
-        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.ref} WHERE "UID" = '${String(UID)}'`)
-        return (result && result.rows.length > 0) || false
+        const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.REF} WHERE "UID" = '${UID}'`)
+        return (queryResult && queryResult.rows.length > 0) || false
       },
     },
 
@@ -46,8 +46,8 @@ const databaseInstances = {
       contacts: {
         prefix: "cntcs",
         functions: {
-          constructor: function(ref, payload) {
-            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
+          constructor: function(REF, payload) {
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
           }
         }
       }
@@ -55,14 +55,23 @@ const databaseInstances = {
   },
 
   personalGroups: {
-    ref: "\"APP_PERSONAL_GROUPS\"",
+    REF: "\"APP_PERSONAL_GROUPS\"",
     prefix: "prsnlgrp",
     functions: {
       constructor: async function(payload) {
-        //if (!payload.UID || !payload.username || !payload.DOB) return false //TODO: ...
+        if (!payload.senderUID || !payload.receiverUID) return false
+        var groupRefs = [payload.senderUID + "/" + payload.receiverUID, payload.receiverUID + "/" + payload.senderUID]
+        var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.REF} WHERE "REF" IN ('${groupRefs[0]}', '${groupRefs[1]}')`)
+        queryResult = fetchSoloResult(queryResult)
+        if (queryResult) return queryResult.UID
+        payload = {
+          REF: groupRefs[0]
+        }
         const preparedQuery = prepareQuery(payload)
-        const result = await databaseServer.query(`INSERT INTO ${databaseInstances.personalGroups.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        if (!result) return false
+        queryResult = await databaseServer.query(`INSERT INTO ${databaseInstances.personalGroups.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
+        queryResult = fetchSoloResult(queryResult)
+        if (!queryResult) return false
+        payload.UID = queryResult.UID
         const dependencies = Object.entries(databaseInstances.personalGroups.dependencies)
         for (const dependency in dependencies) {
           await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
@@ -77,8 +86,8 @@ const databaseInstances = {
 
       isGroupExisting: async function(UID) {
         if (!UID) return false
-        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.ref} WHERE "UID" = '${Number(UID)}'`)
-        return (result && result.rows.length > 0) || false
+        const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.REF} WHERE "UID" = '${UID}'`)
+        return (queryResult && queryResult.rows.length > 0) || false
       },
     },
 
@@ -86,45 +95,29 @@ const databaseInstances = {
   },
 
   privateGroups: {
-    ref: "\"APP_PRIVATE_GROUPS\"",
+    REF: "\"APP_PRIVATE_GROUPS\"",
     prefix: "prvtgrp"
   },
 
   publicGroups: {
-    ref: "\"APP_PUBLIC_GROUPS\"",
+    REF: "\"APP_PUBLIC_GROUPS\"",
     prefix: "pblcgrp"
   },
 
   serverGroups: {
-    ref: "\"APP_SERVER_GROUPS\"",
+    REF: "\"APP_SERVER_GROUPS\"",
     prefix: "srvrgrp"
   }
 }
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.ref}("UID" TEXT PRIMARY KEY, username TEXT NOT NULL, "DOB" JSON NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.personalGroups.ref}("UID" BIGSERIAL PRIMARY KEY, "DOC" timestamp with time zone DEFAULT now())`)
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.publicGroups.ref}("UID" BIGSERIAL PRIMARY KEY, "DOC" timestamp with time zone DEFAULT now())`)
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.serverGroups.ref}("UID" BIGSERIAL PRIMARY KEY, "DOC" timestamp with time zone DEFAULT now())`)
-
-function prepareQuery(queryDatas) {
-  if (!queryDatas) return false
-  let valueIDs = "", valueID = 0
-  const columns = [], values = []
-  Object.entries(queryDatas).forEach(function(queryData) {
-    valueIDs += (valueID == 0) ? `$1` : `, $${valueID + 1}`
-    valueID = valueID + 1
-    columns.push("\"" + String(queryData[0]) + "\"")
-    values.push(queryData[1])
-  })
-  return {columns, valueIDs, values}
-}
-
-function fetchSoloResult(queryResult) {
-  return (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
-}
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.REF}("UID" TEXT PRIMARY KEY, username TEXT NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.personalGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "REF" TEXT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.publicGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.serverGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 
 module.exports = {
   server: databaseServer,
   instances: databaseInstances,
-  prepareQuery: prepareQuery,
-  fetchSoloResult: fetchSoloResult
+  isTableExisting,
+  prepareQuery,
+  fetchSoloResult
 }
