@@ -77,7 +77,7 @@ const databaseInstances = {
 
       isGroupExisting: async function(UID) {
         if (!UID) return false
-        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.ref} WHERE "UID" = '${String(UID)}'`)
+        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.ref} WHERE "UID" = '${Number(UID)}'`)
         return (result && result.rows.length > 0) || false
       },
     },
