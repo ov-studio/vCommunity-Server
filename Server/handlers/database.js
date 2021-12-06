@@ -26,7 +26,7 @@ const databaseInstances = {
 
         const dependencies = Object.entries(databaseInstances.users.dependencies)
         for (const dependency in dependencies) {
-          await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
+          await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID))
         }
         return true
       },
@@ -47,7 +47,7 @@ const databaseInstances = {
       contacts: {
         prefix: "cntcs",
         functions: {
-          constructor: function(REF, payload) {
+          constructor: function(REF) {
             return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, group BIGINT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
           }
         }
@@ -76,7 +76,7 @@ const databaseInstances = {
         payload.UID = queryResult.UID
         const dependencies = Object.entries(databaseInstances.personalGroups.dependencies)
         for (const dependency in dependencies) {
-          await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
+          await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyRef(dependencies[dependency][0], payload.UID))
         }
         return payload.UID
       },
@@ -97,7 +97,7 @@ const databaseInstances = {
       messages: {
         prefix: "msgs",
         functions: {
-          constructor: function(REF, payload) {
+          constructor: function(REF) {
             return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, message TEXT NOT NULL, owner TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
           }
         }
