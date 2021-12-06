@@ -23,23 +23,23 @@ const contactsHandler = require("../contacts")
 -- Handlers --
 ------------*/
 
-async function getGroupsByUID(UID, preFetchedContacts) {
+async function getGroupsByUID(UID) {
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
-  const fetchedContacts = preFetchedContacts || await contactsHandler.getContactsByUID(UID)
+  const fetchedContacts = await contactsHandler.getContactsByUID(UID, "friends")
   const fetchedGroups = []
-  Object.entries(fetchedContacts.friends).forEach(function(contactData) {
+  Object.entries(fetchedContacts).forEach(function(contactData) {
     fetchedGroups.push({
-      groupUID: contactData[1].UID,
-      participantUID: contactData[0]
+      groupUID: contactData[1].group,
+      participantUID: contactData[1].UID
     })
   })
   return fetchedGroups
 }
 
-async function getGroupsBySocket(socket, preFetchedContacts) {
+async function getGroupsBySocket(socket) {
   const socketInstance = instanceHandler.getInstancesBySocket(socket)
   if (!socketInstance) return false
-  return await getGroupsByUID(socketInstance.UID, preFetchedContacts)
+  return await getGroupsByUID(socketInstance.UID)
 }
 
 async function prepareMessage(UID, groupUID, groupMessage) {
@@ -54,7 +54,7 @@ async function prepareMessage(UID, groupUID, groupMessage) {
   }
 }
 
-async function syncClientGroups(UID, socket, syncContacts) {
+async function syncClientGroups(UID, socket) {
   if (!UID && !socket) return false
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = null
@@ -69,13 +69,11 @@ async function syncClientGroups(UID, socket, syncContacts) {
   }
   if (!fetchedInstances) return false
 
-  const fetchedContacts = await contactsHandler.getContactsByUID(UID)
-  const fetchedGroups = await getGroupsByUID(UID, null, fetchedContacts)
-  if (syncContacts) contactsHandler.syncClientContacts(UID, socket, fetchedInstances, fetchedContacts)
+  const fetchedGroups = await getGroupsByUID(UID, null)
   Object.entries(fetchedInstances).forEach(async function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       groupData.groupMessages = []
-      clientInstance[1].join(groupData.groupUID)
+      clientInstance[1].join(databaseHandler.instances.personalGroups.prefix + "_" + groupData.groupUID)
       clientInstance[1].emit("App:onSyncPersonalGroups", groupData) 
     })
   })
