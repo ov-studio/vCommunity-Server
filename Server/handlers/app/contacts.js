@@ -16,11 +16,7 @@ const eventServer = require("../../servers/event")
 const utilityHandler = require("../utility")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
-const contactInstances = {
-  friends: "contacts/friends",
-  pending: "contacts/pending",
-  blocked: "contacts/blocked"
-}
+const contactTypes = {"friends", "pending", "blocked"}
 
 
 /*------------
@@ -40,8 +36,8 @@ async function getContactsByUID(UID) {
   }
 
   const userContacts = {}
-  Object.entries(contactInstances).forEach(function(contactInstance) {
-    userContacts[(contactInstance[0])] = (contactsData && contactsData[(contactInstance[0])]) || {}
+  contactTypes.forEach(function(contactInstance) {
+    userContacts[contactInstance] = (contactsData && contactsData[contactInstance]) || {}
   })
   return userContacts
 }
@@ -94,22 +90,23 @@ module.exports = {
         queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
         queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
         if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
-        // TODO: ..
-        target_userRef.child(contactInstances.pending).update({
-          [(client_instance.UID)]: cDate
+        var preparedQuery = prepareQuery({
+          UID: UID,
+          state: "pending"
         })
+        await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
       } else {
         if (!queryResult || (queryResult.state != "pending")) return false
         if (requestType == "accept") {
           const cRoomUID = UID + "/" + (client_instance.UID) //TODO: Only for testing purpoe..
           const cRoomData = {UID: cRoomUID, creationDate: cDate}
-          client_userRef.child(contactInstances.pending).update({
+          client_userRef.child(contactTypes.pending).update({
             [UID]: null
           })
-          client_userRef.child(contactInstances.friends).update({
+          client_userRef.child(contactTypes.friends).update({
             [UID]: cRoomData
           })
-          target_userRef.child(contactInstances.friends).update({
+          target_userRef.child(contactTypes.friends).update({
             [(client_instance.UID)]: cRoomData
           })
         }
