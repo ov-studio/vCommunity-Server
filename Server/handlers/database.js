@@ -48,7 +48,7 @@ const databaseInstances = {
         prefix: "cntcs",
         functions: {
           constructor: function(REF, payload) {
-            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, group TEXT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, group BIGINT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
           }
         }
       }
@@ -93,7 +93,16 @@ const databaseInstances = {
       },
     },
 
-    dependencies: {}
+    dependencies: {
+      messages: {
+        prefix: "msgs",
+        functions: {
+          constructor: function(REF, payload) {
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, message TEXT NOT NULL, owner TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+          }
+        }
+      }
+    }
   },
 
   privateGroups: {
