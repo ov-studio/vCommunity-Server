@@ -70,7 +70,7 @@ async function syncClientContacts(UID, socket) {
   if (!fetchedInstances) return false
 
   const fetchedContacts = await getContactsByUID(UID)
-  Object.entries(fetchedInstances).forEach(async function(clientInstance) {
+  Object.entries(fetchedInstances).forEach(function(clientInstance) {
     clientInstance[1].emit("App:onSyncContacts", fetchedContacts) 
   })
   return true

@@ -70,7 +70,7 @@ async function syncClientGroups(UID, socket) {
   if (!fetchedInstances) return false
 
   const fetchedGroups = await getGroupsByUID(UID, null)
-  Object.entries(fetchedInstances).forEach(async function(clientInstance) {
+  Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       groupData.groupMessages = []
       clientInstance[1].join(databaseHandler.instances.personalGroups.prefix + "_" + groupData.groupUID)

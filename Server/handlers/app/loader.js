@@ -26,7 +26,7 @@ const socketDependencies = [
 ------------*/
 
 socketServer.of("/app").on("connection", (socket) => {
-  socketDependencies.forEach(async function(depenency) {
+  socketDependencies.forEach(function(depenency) {
     depenency.injectSocket(socketServer, socket)
   })
 })
