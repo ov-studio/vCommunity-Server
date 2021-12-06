@@ -150,10 +150,6 @@ module.exports = {
       } else if (requestType == "unblock") {
         if (queryResult && (queryResult.state != "blocked")) return false
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
-        var preparedQuery = prepareQuery({
-          UID: UID,
-          state: "blocked"
-        })
       } else {
         return false
       }
