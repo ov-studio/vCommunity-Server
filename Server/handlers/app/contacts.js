@@ -103,9 +103,26 @@ module.exports = {
           client_userRef.child(contactTypes.pending).update({
             [UID]: null
           })
+
+          var preparedQuery = prepareQuery({
+            UID: UID,
+            state: "friends"
+          })
+          await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+      
+          var preparedQuery = prepareQuery({
+            UID: client_instance.UID,
+            state: "friends"
+          })
+          await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+      
+          
           client_userRef.child(contactTypes.friends).update({
             [UID]: cRoomData
           })
+
+
+
           target_userRef.child(contactTypes.friends).update({
             [(client_instance.UID)]: cRoomData
           })
