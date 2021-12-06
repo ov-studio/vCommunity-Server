@@ -36,10 +36,11 @@ const databaseInstances = {
         return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix + "\""
       },
 
-      isUserExisting: async function(UID) {
+      isUserExisting: async function(UID, fetchData) {
         if (!UID) return false
         const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.REF} WHERE "UID" = '${UID}'`)
-        return (queryResult && queryResult.rows.length > 0) || false
+        if (fetchData) return fetchSoloResult(queryResult)
+        else return (queryResult && (queryResult.rows.length > 0)) || false
       },
     },
 
