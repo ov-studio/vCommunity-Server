@@ -35,7 +35,6 @@ function getUserContacts(UID, socket, contactType) {
 
 async function syncUserContacts(UID, socket) {
   if (!UID && !socket) return false
-  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = null
   if (!fetchedInstances) {
     if (!UID) {
@@ -51,6 +50,7 @@ async function syncUserContacts(UID, socket) {
   if (!fetchedInstances) return false
 
   const fetchedContacts = await getUserContacts(UID)
+  if (!fetchedContacts) return false
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     clientInstance[1].emit("App:onSyncContacts", fetchedContacts) 
   })

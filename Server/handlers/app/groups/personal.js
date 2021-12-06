@@ -58,7 +58,6 @@ async function prepareMessage(UID, groupUID, groupMessage) {
 
 async function syncUserGroups(UID, socket) {
   if (!UID && !socket) return false
-  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = null
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
@@ -72,6 +71,7 @@ async function syncUserGroups(UID, socket) {
   if (!fetchedInstances) return false
 
   const fetchedGroups = await getUserGroups(UID)
+  if (!fetchedGroups) return false
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       groupData.groupMessages = []
