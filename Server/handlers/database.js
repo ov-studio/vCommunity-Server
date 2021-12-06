@@ -16,7 +16,7 @@ const {databaseServer} = require("../servers/database")
 const databaseInstances = {
   users: {
     ref: "APP_USERS",
-    prefix: "USR",
+    prefix: "usr",
     functions: {
       constructor: async function(payload) {
         if (!payload.UID || !payload.username || !payload.DOB) return false
@@ -44,7 +44,7 @@ const databaseInstances = {
 
     dependencies: {
       contacts: {
-        prefix: "CNTCS",
+        prefix: "cntcs",
         functions: {
           constructor: function(ref, payload) {
             return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${ref}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
@@ -56,7 +56,7 @@ const databaseInstances = {
 
   personalGroups: {
     ref: "\"APP_PERSONAL_GROUPS\"",
-    prefix: "PRSNLGRP",
+    prefix: "prsnlgrp",
     functions: {
       constructor: async function(payload) {
         //if (!payload.UID || !payload.username || !payload.DOB) return false //TODO: ...
@@ -87,17 +87,17 @@ const databaseInstances = {
 
   privateGroups: {
     ref: "\"APP_PRIVATE_GROUPS\"",
-    prefix: "PRVTEGRP"
+    prefix: "prvtgrp"
   },
 
   publicGroups: {
     ref: "\"APP_PUBLIC_GROUPS\"",
-    prefix: "PBLCGRP"
+    prefix: "pblcgrp"
   },
 
   serverGroups: {
     ref: "\"APP_SERVER_GROUPS\"",
-    prefix: "SRVRGRP"
+    prefix: "srvrgrp"
   }
 }
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.ref}("UID" TEXT PRIMARY KEY, username TEXT NOT NULL, "DOB" JSON NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
