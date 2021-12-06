@@ -13,7 +13,6 @@
 -----------*/
 
 const eventServer = require("../../../servers/event")
-const utilityHandler = require("../../utility")
 const databaseHandler = require("../../database")
 const instanceHandler = require("../instance")
 const contactsHandler = require("../contacts")
@@ -46,7 +45,7 @@ async function getUserGroups(UID, socket) {
 
 async function prepareMessage(UID, groupUID, groupMessage) {
   if (!UID && !groupUID && !groupMessage) return false
-  await utilityHandler.sleep(1)
+  // TODO: ... INTEGRATE...
   const timestamp = new Date().getTime()
   return {
     groupUID: groupUID,
