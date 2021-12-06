@@ -117,11 +117,9 @@ module.exports = {
             group: groupUID.UID
           })
           await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        }
-        else if (requestType == "reject") {
+        } else if (requestType == "reject") {
           await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-        }
-        else {
+        } else {
           return false
         }
       }
