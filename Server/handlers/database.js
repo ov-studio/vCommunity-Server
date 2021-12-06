@@ -59,7 +59,7 @@ const databaseInstances = {
     prefix: "PRSNLGRP",
     functions: {
       constructor: async function(payload) {
-        if (!payload.UID || !payload.username || !payload.DOB) return false
+        //if (!payload.UID || !payload.username || !payload.DOB) return false //TODO: ...
         const preparedQuery = prepareQuery(payload)
         const result = await databaseServer.query(`INSERT INTO ${databaseInstances.personalGroups.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         if (!result) return false
