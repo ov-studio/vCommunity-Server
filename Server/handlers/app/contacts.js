@@ -22,7 +22,7 @@ const contactTypes = ["friends", "pending", "blocked"]
 -- Handlers --
 ------------*/
 
-function getUserContacts(UID, socket, contactType) {
+async function getUserContacts(UID, socket, contactType) {
   if (!UID && !socket) return false
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
