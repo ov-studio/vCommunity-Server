@@ -13,46 +13,25 @@
 -----------*/
 
 const eventServer = require("../../servers/event")
-const utilityHandler = require("../utility")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
-const contactTypes = ["friends", "pending", "blocked"]
 
 
 /*------------
 -- Handlers --
 ------------*/
 
-async function getContactsByUID(UID, contactType) {
-  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
-  if (!contactType && (contactTypes.indexOf(contactType) == -1)) return false
-
-  if (contactType) {
-    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE type = '${contactType}'`)
-    return (queryResult && (queryResult.rows.length > 0) && queryResult) || false
+async function getUserContacts(UID, socket, contactType) {
+  if (!UID && !socket) return false
+  if (!UID) {
+    const socketInstance = instanceHandler.getInstancesBySocket(socket)
+    if (!socketInstance) return false
+    UID = socketInstance.UID
   }
-  var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}`)
-  if (queryResult && (queryResult.rows.length > 0)) {
-    queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
-      const contactType = contactData.type
-      delete contactData.type
-      return contactType
-    })
-  }
-  const userContacts = {}
-  contactTypes.forEach(function(contactInstance) {
-    userContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
-  })
-  return userContacts
+  return (UID && await databaseHandler.instances.users.dependencies.contacts.functions.getUserContacts(UID, contactType)) || false
 }
 
-async function getContactsBySocket(socket) {
-  const socketInstance = instanceHandler.getInstancesBySocket(socket)
-  if (!socketInstance) return false
-  return await getContactsByUID(socketInstance.UID)
-}
-
-async function syncClientContacts(UID, socket) {
+async function syncUserContacts(UID, socket) {
   if (!UID && !socket) return false
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = null
@@ -69,7 +48,7 @@ async function syncClientContacts(UID, socket) {
   }
   if (!fetchedInstances) return false
 
-  const fetchedContacts = await getContactsByUID(UID)
+  const fetchedContacts = await getUserContacts(UID)
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     clientInstance[1].emit("App:onSyncContacts", fetchedContacts) 
   })
@@ -77,9 +56,8 @@ async function syncClientContacts(UID, socket) {
 }
 
 module.exports = {
-  getContactsByUID: getContactsByUID,
-  getContactsBySocket: getContactsBySocket,
-  syncClientContacts: syncClientContacts,
+  getUserContacts,
+  syncUserContacts,
 
   injectSocket(socketServer, socket) {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {

@@ -25,7 +25,7 @@ const contactsHandler = require("../contacts")
 
 async function getGroupsByUID(UID) {
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
-  const fetchedContacts = await contactsHandler.getContactsByUID(UID, "friends")
+  const fetchedContacts = await contactsHandler.getUserContacts(UID, null, "friends")
   const fetchedGroups = []
   Object.entries(fetchedContacts).forEach(function(contactData) {
     fetchedGroups.push({

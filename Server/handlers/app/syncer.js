@@ -17,6 +17,6 @@ const contactsHandler = require("./contacts")
 const personalGroupHandler = require("./groups/personal")
 
 eventServer.on("App:onClientConnect", async function(socket, UID) {
-  contactsHandler.syncClientContacts(UID, socket)
+  contactsHandler.syncUserContacts(UID, socket)
   personalGroupHandler.syncClientGroups(UID, socket)
 })
