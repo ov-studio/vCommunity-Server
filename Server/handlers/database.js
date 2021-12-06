@@ -49,33 +49,9 @@ databaseInstances.users = {
   dependencies: {
     contacts: {
       prefix: "cntcs",
-      contactTypes: ["friends", "pending", "blocked"],
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, "type" TEXT NOT NULL, "group" BIGINT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
-        },
-
-        getUserContacts: async function(UID, contactType) {
-          if (!await databaseInstances.users.functions.isUserExisting(UID)) return false
-          if (!contactType && (databaseInstances.users.dependencies.contacts.contactTypes.indexOf(contactType) == -1)) return false
-
-          if (contactType) {
-            var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyREF("contacts", UID)} WHERE type = '${contactType}'`)
-            return (queryResult && queryResult.rows) || false
-          }
-          var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyREF("contacts", UID)}`)
-          if (queryResult && (queryResult.rows.length > 0)) {
-            queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
-              const contactType = contactData.type
-              delete contactData.type
-              return contactType
-            })
-          }
-          const fetchedContacts = {}
-          databaseInstances.users.dependencies.contacts.contactTypes.forEach(function(contactInstance) {
-            fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
-          })
-          return fetchedContacts
         }
       }
     }

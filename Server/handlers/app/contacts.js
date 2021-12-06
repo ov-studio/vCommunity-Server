@@ -15,6 +15,7 @@
 const eventServer = require("../../servers/event")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
+const contactTypes = ["friends", "pending", "blocked"]
 
 
 /*------------
@@ -29,8 +30,26 @@ function getUserContacts(UID, socket, contactType) {
     UID = socketInstance.UID
   }
   if (!UID) return false
+  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
+  if (!contactType && (contactTypes.indexOf(contactType) == -1)) return false
 
-  return databaseHandler.instances.users.dependencies.contacts.functions.getUserContacts(UID, contactType)
+  if (contactType) {
+    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)} WHERE type = '${contactType}'`)
+    return (queryResult && queryResult.rows) || false
+  }
+  var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)}`)
+  if (queryResult && (queryResult.rows.length > 0)) {
+    queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
+      const contactType = contactData.type
+      delete contactData.type
+      return contactType
+    })
+  }
+  const fetchedContacts = {}
+  contactTypes.forEach(function(contactInstance) {
+    fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
+  })
+  return fetchedContacts
 }
 
 async function syncUserContacts(UID, socket) {
