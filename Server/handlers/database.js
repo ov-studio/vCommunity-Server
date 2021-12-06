@@ -91,8 +91,13 @@ function prepareQuery(queryDatas) {
   return {columns, valueIDs, values}
 }
 
+function fetchSoloResult(queryResult) {
+  return (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
+}
+
 module.exports = {
   server: databaseServer,
   instances: databaseInstances,
-  prepareQuery: prepareQuery
+  prepareQuery: prepareQuery,
+  fetchSoloResult: fetchSoloResult
 }
