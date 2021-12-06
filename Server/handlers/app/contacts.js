@@ -85,22 +85,22 @@ module.exports = {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
-      //const client_userRef = databaseHandler.instances.users.child(client_instance.UID), target_userRef = databaseHandler.instances.users.child(UID)
       if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
 
-      //TODO: ..
-      const client_contacts = await getContactsByUID(client_instance.UID)
+      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+      queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
       if (requestType == "send") {
-        const target_contacts = await getContactsByUID(UID)
-        if (client_contacts.friends[UID] || client_contacts.blocked[UID] || target_contacts.pending[(client_instance.UID)] || target_contacts.blocked[(client_instance.UID)]) return false
-        const cDate = new Date()
+        if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
+        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
+        queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
+        if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
+        // TODO: ..
         target_userRef.child(contactInstances.pending).update({
           [(client_instance.UID)]: cDate
         })
       } else {
-        if (!client_contacts.pending[UID]) return false
+        if (!queryResult || (queryResult.state != "pending")) return false
         if (requestType == "accept") {
-          const cDate = new Date()
           const cRoomUID = UID + "/" + (client_instance.UID) //TODO: Only for testing purpoe..
           const cRoomData = {UID: cRoomUID, creationDate: cDate}
           client_userRef.child(contactInstances.pending).update({
@@ -114,9 +114,7 @@ module.exports = {
           })
         }
         else if (requestType == "reject") {
-          client_userRef.child(contactInstances.pending).update({
-            [UID]: null
-          })
+          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
         }
         else {
           return false
