@@ -35,8 +35,8 @@ function getInstancesBySocket(socket) {
 }
 
 module.exports = {
-  getInstancesByUID: getInstancesByUID,
-  getInstancesBySocket: getInstancesBySocket,
+  getInstancesByUID,
+  getInstancesBySocket,
 
   async injectSocket(socketServer, socket) {
     socket.on("App:onClientConnect", async function(UID) {
