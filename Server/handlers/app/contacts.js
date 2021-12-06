@@ -136,7 +136,6 @@ module.exports = {
       queryResult = (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
       if (requestType == "block") {
         if (queryResult && (queryResult.state == "blocked")) return false
-        const cDate = new Date()
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
         var preparedQuery = prepareQuery({
           UID: UID,
