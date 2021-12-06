@@ -47,7 +47,7 @@ const databaseInstances = {
         prefix: "cntcs",
         functions: {
           constructor: function(REF, payload) {
-            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+            return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, group TEXT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
           }
         }
       }
