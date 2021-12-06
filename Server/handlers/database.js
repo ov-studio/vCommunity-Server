@@ -70,13 +70,13 @@ const databaseInstances = {
         const preparedQuery = prepareQuery(payload)
         queryResult = await databaseServer.query(`INSERT INTO ${databaseInstances.personalGroups.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
         queryResult = fetchSoloResult(queryResult)
-        if (!queryResult) return false
+        if (!queryResult) return queryResult.UID
         payload.UID = queryResult.UID
         const dependencies = Object.entries(databaseInstances.personalGroups.dependencies)
         for (const dependency in dependencies) {
           await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
         }
-        return true
+        return payload.UID
       },
 
       getDependencyRef: function(dependency, UID) {

@@ -80,77 +80,83 @@ module.exports = {
   injectSocket(socketServer, socket) {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
-      const client_instance = instanceHandler.getInstancesBySocket(this)
-      if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
+      const CInstances = instanceHandler.getInstancesBySocket(this)
+      if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
 
-      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       queryResult = databaseHandler.fetchSoloResult(queryResult)
       if (requestType == "send") {
         if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
-        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
+        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
         if (queryResult && ((queryResult.state == "friends") || (queryResult.state == "blocked"))) return false
         var preparedQuery = databaseHandler.prepareQuery({
           UID: UID,
           state: "pending"
         })
-        await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
       } else {
         if (!queryResult || (queryResult.state != "pending")) return false
         if (requestType == "accept") {
-          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+          const groupUID = await databaseHandler.instances.personalGroups.functions.constructor({
+            senderUID: UID,
+            receiverUID: CInstances.UID
+          })
+          if (!groupUID) return false
+          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
           var preparedQuery = databaseHandler.prepareQuery({
             UID: UID,
-            state: "friends"
+            state: "friends",
+            group: groupUID.UID
           })
-          await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
-          var preparedQuery = databaseHandler.prepareQuery({
-            UID: client_instance.UID,
-            state: "friends"
+          await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
+          preparedQuery = databaseHandler.prepareQuery({
+            UID: CInstances.UID,
+            state: "friends",
+            group: groupUID.UID
           })
           await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-          // TODO: CREATE PERSONAL GROUP CONNECT W/ DATABASE.JS...
         }
         else if (requestType == "reject") {
-          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+          await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
         }
         else {
           return false
         }
       }
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", client_instance.UID, null, true)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null, true)
       eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
       return true
     })
 
     socket.on("App:onClientBlockRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
-      const client_instance = instanceHandler.getInstancesBySocket(this)
-      if (!client_instance || (client_instance.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
+      const CInstances = instanceHandler.getInstancesBySocket(this)
+      if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
 
-      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       queryResult = databaseHandler.fetchSoloResult(queryResult)
       if (requestType == "block") {
         if (queryResult) {
           if (queryResult.state == "blocked") return false 
-          else await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+          else await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
         }
         var preparedQuery = databaseHandler.prepareQuery({
           UID: UID,
           state: "blocked"
         })
-        await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
+        await databaseServer.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
-        if (queryResult && (queryResult.state != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${String(client_instance.UID)}'`)
+        if (queryResult && (queryResult.state != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
       } else if (requestType == "unblock") {
         if (queryResult && (queryResult.state != "blocked")) return false
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", client_instance.UID)} WHERE "UID" = '${String(UID)}'`)
+        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       } else {
         return false
       }
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", client_instance.UID, null, true)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null, true)
       eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
       return true
     })
