@@ -35,7 +35,7 @@ socketServer.of("/auth").on("connection", (socket) => {
         disabled: false
       })
     } catch(error) {
-      return socketReference.emit("Auth:onClientRegister", {error: authResult.code})
+      return socketReference.emit("Auth:onClientRegister", {error: error.code})
     }
 
     var constructorResult = await databaseHandler.instances.users.functions.constructor({
