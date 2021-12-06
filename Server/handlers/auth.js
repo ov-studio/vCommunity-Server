@@ -24,6 +24,7 @@ const databaseHandler = require("./database")
 socketServer.of("/auth").on("connection", (socket) => {
   socket.on("Auth:onClientRegister", async function(userData) {
     if (!userData) return false
+
     const socketReference = this
     var authResult = false
     try {

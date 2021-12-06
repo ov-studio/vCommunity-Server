@@ -41,6 +41,7 @@ const databaseInstances = {
         return (result && result.rows.length > 0) || false
       },
     },
+
     dependencies: {
       contacts: {
         prefix: "CNTCS",
