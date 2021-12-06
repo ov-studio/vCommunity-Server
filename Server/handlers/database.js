@@ -61,7 +61,7 @@ databaseInstances.users = {
 
           if (contactType) {
             var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyREF("contacts", UID)} WHERE type = '${contactType}'`)
-            return (queryResult && (queryResult.rows.length > 0) && queryResult) || false
+            return (queryResult && queryResult.rows) || false
           }
           var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.functions.getDependencyREF("contacts", UID)}`)
           if (queryResult && (queryResult.rows.length > 0)) {
