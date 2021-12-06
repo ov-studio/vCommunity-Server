@@ -23,7 +23,6 @@ const databaseInstances = {
         const preparedQuery = prepareQuery(payload)
         const result = await databaseServer.query(`INSERT INTO ${databaseInstances.users.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         if (!result) return false
-        console.log(result)
         const dependencies = Object.entries(databaseInstances.users.dependencies)
         for (const dependency in dependencies) {
           await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
