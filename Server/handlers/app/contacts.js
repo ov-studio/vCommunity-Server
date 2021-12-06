@@ -28,6 +28,7 @@ const contactInstances = {
 ------------*/
 
 async function getContactsByUID(UID) {
+  if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   var contactsData = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyRef("contacts", UID)}`)
   contactsData = (contactsData && (contactsData.rows.length > 0) && contactsData.rows) || false
   if (contactsData) {
