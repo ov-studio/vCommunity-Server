@@ -37,13 +37,13 @@ const databaseInstances = {
 
       isUserExisting: async function(UID) {
         if (!UID) return false
-        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.ref} WHERE "UID" = '${UID}'`)
+        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.ref} WHERE "UID" = '${String(UID)}'`)
         return (result && result.rows.length > 0) || false
       },
     },
     dependencies: {
       contacts: {
-        prefix: "CNTCTS",
+        prefix: "CNTCS",
         functions: {
           constructor: function(ref, payload) {
             return databaseServer.query(`CREATE TABLE IF NOT EXISTS "${ref}"("UID" TEXT PRIMARY KEY, state TEXT NOT NULL, "DOC" timestamp with time zone DEFAULT now())`)
