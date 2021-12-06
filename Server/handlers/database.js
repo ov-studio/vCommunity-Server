@@ -32,7 +32,7 @@ const databaseInstances = {
 
       getDependencyRef: function(dependency, UID) {
         if (!dependency || !databaseInstances.users.dependencies[dependency] || !UID) return false
-        return databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix
+        return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix + "\""
       },
 
       isUserExisting: async function(UID) {
