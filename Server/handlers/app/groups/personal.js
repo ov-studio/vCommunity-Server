@@ -54,7 +54,7 @@ async function prepareMessage(UID, groupUID, groupMessage) {
   }
 }
 
-async function syncClientGroups(UID, socket) {
+async function syncUserGroups(UID, socket) {
   if (!UID && !socket) return false
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
   let fetchedInstances = null
@@ -79,12 +79,12 @@ async function syncClientGroups(UID, socket) {
   })
   return true
 }
-eventServer.on("App:Group:Personal:onSyncClientGroups", syncClientGroups)
+eventServer.on("App:Group:Personal:onSyncClientGroups", syncUserGroups)
 
 module.exports = {
   getGroupsByUID: getGroupsByUID,
   getGroupsBySocket: getGroupsBySocket,
-  syncClientGroups: syncClientGroups,
+  syncUserGroups: syncUserGroups,
 
   injectSocket(socketServer, socket) {
     socket.on("App:Group:Personal:onClientActionInput", async function(actionData) {
