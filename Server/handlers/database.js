@@ -23,6 +23,7 @@ const databaseInstances = {
         const preparedQuery = prepareQuery(payload)
         const queryResult = await databaseServer.query(`INSERT INTO ${databaseInstances.users.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         if (!queryResult) return false
+
         const dependencies = Object.entries(databaseInstances.users.dependencies)
         for (const dependency in dependencies) {
           await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
@@ -64,6 +65,7 @@ const databaseInstances = {
         var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.REF} WHERE "REF" IN ('${groupRefs[0]}', '${groupRefs[1]}')`)
         queryResult = fetchSoloResult(queryResult)
         if (queryResult) return queryResult.UID
+
         payload = {
           REF: groupRefs[0]
         }
