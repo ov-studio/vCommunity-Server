@@ -56,7 +56,33 @@ const databaseInstances = {
 
   personalGroups: {
     ref: "\"APP_PERSONAL_GROUPS\"",
-    prefix: "PRSNLGRP"
+    prefix: "PRSNLGRP",
+    functions: {
+      constructor: async function(payload) {
+        if (!payload.UID || !payload.username || !payload.DOB) return false
+        const preparedQuery = prepareQuery(payload)
+        const result = await databaseServer.query(`INSERT INTO ${databaseInstances.personalGroups.ref}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        if (!result) return false
+        const dependencies = Object.entries(databaseInstances.personalGroups.dependencies)
+        for (const dependency in dependencies) {
+          await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyRef(dependencies[dependency][0], payload.UID), payload)
+        }
+        return true
+      },
+
+      getDependencyRef: function(dependency, UID) {
+        if (!dependency || !databaseInstances.personalGroups.dependencies[dependency] || !UID) return false
+        return "\"" + databaseInstances.personalGroups.prefix + "_" + UID + "_" + databaseInstances.personalGroups.dependencies[dependency].prefix + "\""
+      },
+
+      isGroupExisting: async function(UID) {
+        if (!UID) return false
+        const result = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.ref} WHERE "UID" = '${String(UID)}'`)
+        return (result && result.rows.length > 0) || false
+      },
+    },
+
+    dependencies: {}
   },
 
   privateGroups: {
