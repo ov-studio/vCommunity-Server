@@ -82,9 +82,9 @@ async function syncUserGroups(UID, socket) {
 eventServer.on("App:Group:Personal:onSyncClientGroups", syncUserGroups)
 
 module.exports = {
-  getGroupsByUID: getGroupsByUID,
-  getGroupsBySocket: getGroupsBySocket,
-  syncUserGroups: syncUserGroups,
+  getGroupsByUID,
+  getGroupsBySocket,
+  syncUserGroups,
 
   injectSocket(socketServer, socket) {
     socket.on("App:Group:Personal:onClientActionInput", async function(actionData) {
