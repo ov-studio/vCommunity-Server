@@ -35,7 +35,7 @@ socketServer.of("/auth").on("connection", (socket) => {
         disabled: false
       })
     } catch(error) {
-      return socketReference.emit("Auth:onClientRegister", {error: error.code})
+      return socketReference.emit("Auth:onClientRegister", {status: error.code})
     }
 
     var constructorResult = await databaseHandler.instances.users.functions.constructor({
@@ -46,8 +46,8 @@ socketServer.of("/auth").on("connection", (socket) => {
     })
     if (!constructorResult) {
       authServer.auth().deleteUser(authResult.uid)
-      return socketReference.emit("Auth:onClientRegister", {error: "query/constructor/failed"})
+      return socketReference.emit("Auth:onClientRegister", {status: "auth/failed"})
     }
-    socketReference.emit("Auth:onClientRegister", {success: true})
+    socketReference.emit("Auth:onClientRegister", {success: true, status: "auth/successful"})
   })
 })
