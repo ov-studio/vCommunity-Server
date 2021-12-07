@@ -63,6 +63,7 @@ async function syncUserGroups(UID, socket) {
     fetchedGroups.forEach(function(groupData) {
       groupData.groupMessages = []
       clientInstance[1].join(databaseHandler.instances.personalGroups.prefix + "_" + groupData.groupUID)
+      console.log(groupData)
       clientInstance[1].emit("App:onSyncPersonalGroups", groupData) 
     })
   })
@@ -84,8 +85,12 @@ module.exports = {
         message: actionData.message,
         owner: client_instance.UID
       })
-      console.log(queryResult)
-      if (queryResult) socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.groupUID).emit("App:onSyncPersonalGroups", queryResult)
+      if (queryResult) {
+        socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.groupUID).emit("App:onSyncPersonalGroups", {
+          groupUID: actionData.groupUID,
+          groupMessages: [queryResult]
+        })
+      }
       return true
     })
   }
