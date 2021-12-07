@@ -126,14 +126,14 @@ module.exports = {
           var preparedQuery = databaseHandler.prepareQuery({
             UID: UID,
             type: "friends",
-            group: groupUID.UID
+            group: groupUID
           })
           await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
           await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
           preparedQuery = databaseHandler.prepareQuery({
             UID: CInstances.UID,
             type: "friends",
-            group: groupUID.UID
+            group: groupUID
           })
           await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         } else if (requestType == "reject") {
