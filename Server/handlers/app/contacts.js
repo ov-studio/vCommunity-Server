@@ -82,7 +82,7 @@ module.exports = {
   syncUserContacts,
 
   injectSocket(socketServer, socket) {
-    socket.on("App:onClientFriendRequest", async function(UID, requestType) {
+    socket.on("App:Contacts:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const CInstances = instanceHandler.getInstancesBySocket(this)
       if (!CInstances) return false
@@ -149,7 +149,7 @@ module.exports = {
       return true
     })
 
-    socket.on("App:onClientBlockRequest", async function(UID, requestType) {
+    socket.on("App:Contacts:onClientBlockRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const CInstances = instanceHandler.getInstancesBySocket(this)
       if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
