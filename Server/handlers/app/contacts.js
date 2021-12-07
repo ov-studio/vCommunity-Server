@@ -13,6 +13,7 @@
 -----------*/
 
 const eventServer = require("../../servers/event")
+const utilityHandler = require("../utility")
 const databaseHandler = require("../database")
 const instanceHandler = require("./instance")
 const contactTypes = ["friends", "pending", "blocked"]
@@ -31,7 +32,7 @@ async function getUserContacts(UID, socket, contactType) {
   }
   if (!UID) return false
   if (!await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
-  if (!contactType && (contactTypes.indexOf(contactType) == -1)) return false
+  if (contactType && (contactTypes.indexOf(contactType) == -1)) return false
 
   if (contactType) {
     var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)} WHERE type = '${contactType}'`)
@@ -141,8 +142,10 @@ module.exports = {
           return false
         }
       }
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null, true)
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
+      await syncUserContacts(CInstances.UID)
+      await syncUserContacts(UID)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null)
+      eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null)
       return true
     })
 
@@ -172,6 +175,8 @@ module.exports = {
       } else {
         return false
       }
+      await syncUserContacts(CInstances.UID)
+      await syncUserContacts(UID)
       eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null, true)
       eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
       return true
