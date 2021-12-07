@@ -72,7 +72,7 @@ async function syncUserContacts(UID, socket) {
   const fetchedContacts = await getUserContacts(UID)
   if (!fetchedContacts) return false
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
-    clientInstance[1].emit("App:onSyncContacts", fetchedContacts) 
+    clientInstance[1].emit("App:Contacts:onSync", fetchedContacts) 
   })
   return true
 }
@@ -144,8 +144,8 @@ module.exports = {
       }
       await syncUserContacts(CInstances.UID)
       await syncUserContacts(UID)
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null)
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null)
+      eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null)
+      eventServer.emit("App:Groups:Personal:onSync", UID, null)
       return true
     })
 
@@ -177,8 +177,8 @@ module.exports = {
       }
       await syncUserContacts(CInstances.UID)
       await syncUserContacts(UID)
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", CInstances.UID, null, true)
-      eventServer.emit("App:Group:Personal:onSyncClientGroups", UID, null, true)
+      eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null, true)
+      eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
       return true
     })
   }

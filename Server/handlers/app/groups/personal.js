@@ -68,7 +68,7 @@ async function syncUserGroups(UID, socket) {
   })
   return true
 }
-eventServer.on("App:Group:Personal:onSyncClientGroups", syncUserGroups)
+eventServer.on("App:Groups:Personal:onSync", syncUserGroups)
 
 module.exports = {
   getUserGroups,
