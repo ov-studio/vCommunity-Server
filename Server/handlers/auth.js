@@ -38,6 +38,7 @@ socketServer.of("/auth").on("connection", (socket) => {
       return socketReference.emit("Auth:onClientRegister", {status: error.code})
     }
 
+    if (await databaseHandler.instances.users.functions.isUsernameExisting(userData.username)) return socketReference.emit("Auth:onClientRegister", {status: "auth/username-already-exists"})
     var constructorResult = await databaseHandler.instances.users.functions.constructor({
       UID: authResult.uid,
       email: userData.email,
