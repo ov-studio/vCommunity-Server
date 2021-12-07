@@ -93,7 +93,8 @@ module.exports = {
       if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
 
       const preparedMessage = await prepareMessage(client_instance.UID, actionData.groupUID, actionData.message)
-      socketServer.of("/app").to(actionData.groupUID).emit("App:onSyncPersonalGroups", preparedMessage)
+      console.log(preparedMessage)
+      socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.groupUID).emit("App:onSyncPersonalGroups", preparedMessage)
       return true
     })
   }
