@@ -22,14 +22,15 @@ databaseInstances.users = {
     constructor: async function(payload) {
       if (!payload.UID || !payload.username || !payload.DOB) return false
       const preparedQuery = prepareQuery(payload)
-      const queryResult = await databaseServer.query(`INSERT INTO ${databaseInstances.users.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-      if (!queryResult) return false
+      if (await databaseInstances.users.functions.isUsernameExisting(payload.username)) return {status: "auth/username-already-exists"}
 
+      const queryResult = await databaseServer.query(`INSERT INTO ${databaseInstances.users.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+      if (!queryResult) return {status: "auth/failed"}
       const dependencies = Object.entries(databaseInstances.users.dependencies)
       for (const dependency in dependencies) {
         await dependencies[dependency][1].functions.constructor(databaseInstances.users.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
       }
-      return true
+      return {success: true, status: "auth/successful"}
     },
 
     getDependencyREF: function(dependency, UID) {

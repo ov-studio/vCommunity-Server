@@ -38,17 +38,13 @@ socketServer.of("/auth").on("connection", (socket) => {
       return socketReference.emit("Auth:onClientRegister", {status: error.code})
     }
 
-    if (await databaseHandler.instances.users.functions.isUsernameExisting(userData.username)) return socketReference.emit("Auth:onClientRegister", {status: "auth/username-already-exists"})
-    var constructorResult = await databaseHandler.instances.users.functions.constructor({
+    const queryResult = await databaseHandler.instances.users.functions.constructor({
       UID: authResult.uid,
       email: userData.email,
       username: userData.username,
       DOB: JSON.stringify(userData.DOB)
     })
-    if (!constructorResult) {
-      authServer.auth().deleteUser(authResult.uid)
-      return socketReference.emit("Auth:onClientRegister", {status: "auth/failed"})
-    }
-    socketReference.emit("Auth:onClientRegister", {success: true, status: "auth/successful"})
+    if (!queryResult.success) authServer.auth().deleteUser(authResult.uid)
+    socketReference.emit("Auth:onClientRegister", queryResult)
   })
 })
