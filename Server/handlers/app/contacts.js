@@ -88,9 +88,9 @@ module.exports = {
 
       if (requestType == "send") {
         var queryResult = await databaseHandler.instances.users.functions.isUsernameExisting(UID, true)
-        console.log(queryResult) //TODO: REMOVE LATER
         if (!queryResult || (CInstances.UID == queryResult.UID)) return this.emit("App:onClientFriendInvitation", {status: "invitation/failed"})
-        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${queryResult.UID}'`)
+        UID = queryResult.UID
+        var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
         if (queryResult) {
           if (queryResult.type == "blocked") return this.emit("App:onClientFriendInvitation", {status: "invitation/recepient-blocked"})
