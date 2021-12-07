@@ -60,10 +60,10 @@ async function syncUserGroups(UID, socket) {
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
-    clientInstance[1].emit("App:onSyncPersonalGroups", fetchedGroups)
+    clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
     fetchedGroups.forEach(function(groupData) {
       clientInstance[1].join(databaseHandler.instances.personalGroups.prefix + "_" + groupData.UID)
-      //clientInstance[1].emit("App:onSyncPersonalGroupMessages", groupData) TODO: LOAD OLD MSGES
+      //clientInstance[1].emit("App:Groups:Personal:onSyncMessages", groupData) TODO: LOAD OLD MSGES
     })
   })
   return true
@@ -85,7 +85,7 @@ module.exports = {
         owner: client_instance.UID
       })
       if (queryResult) {
-        socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.UID).emit("App:onSyncPersonalGroupMessages", {
+        socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.UID).emit("App:Groups:Personal:onSyncMessages", {
           UID: actionData.UID,
           messages: [queryResult]
         })
