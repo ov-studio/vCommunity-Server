@@ -86,23 +86,33 @@ module.exports = {
       const CInstances = instanceHandler.getInstancesBySocket(this)
       if (!CInstances) return false
 
-      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-      queryResult = databaseHandler.fetchSoloResult(queryResult)
       if (requestType == "send") {
-        console.log("TRYING TO SEND INVIT " + UID)
-        /*
-        if (queryResult && ((queryResult.type == "friends") || (queryResult.type == "blocked"))) return false
+        var queryResult = await databaseHandler.instances.users.functions.isUsernameExisting(UID, true)
+        console.log(queryResult) //TODO: REMOVE LATER
+        if (!queryResult || (CInstances.UID == queryResult.UID)) return this.emit("App:onClientFriendInvitation", {status: "invitation/failed"})
+        queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${queryResult.UID}'`)
+        queryResult = databaseHandler.fetchSoloResult(queryResult)
+        if (queryResult) {
+          if (queryResult.type == "blocked") return this.emit("App:onClientFriendInvitation", {status: "invitation/recepient-blocked"})
+          if (queryResult.type == "friends") return this.emit("App:onClientFriendInvitation", {status: "invitation/failed"})
+        }
         queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
-        if (queryResult && ((queryResult.type == "friends") || (queryResult.type == "blocked"))) return false
+        if (queryResult) {
+          if (queryResult.type == "pending") return this.emit("App:onClientFriendInvitation", {status: "invitation/pending"})
+          if (queryResult.type == "blocked") return this.emit("App:onClientFriendInvitation", {status: "invitation/sender-blocked"})
+          if (queryResult.type == "friends") return this.emit("App:onClientFriendInvitation", {status: "invitation/failed"})
+        }
         var preparedQuery = databaseHandler.prepareQuery({
-          UID: UID,
+          UID: CInstances.UID,
           type: "pending"
         })
-        await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        */
+        await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        this.emit("App:onClientFriendInvitation", {status: "invitation/successful"})
       } else {
         if ((CInstances.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
+        var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
+        queryResult = databaseHandler.fetchSoloResult(queryResult)
         if (!queryResult || (queryResult.type != "pending")) return false
 
         if (requestType == "accept") {

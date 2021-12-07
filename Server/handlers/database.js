@@ -43,6 +43,13 @@ databaseInstances.users = {
       const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.REF} WHERE "UID" = '${UID}'`)
       if (fetchData) return fetchSoloResult(queryResult)
       else return (queryResult && (queryResult.rows.length > 0)) || false
+    },
+
+    isUsernameExisting: async function(username, fetchData) {
+      if (!username) return false
+      const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.REF} WHERE "username" = '${username}'`)
+      if (fetchData) return fetchSoloResult(queryResult)
+      else return (queryResult && (queryResult.rows.length > 0)) || false
     }
   },
 
@@ -123,7 +130,7 @@ databaseInstances.serverGroups = {
   prefix: "srvrgrp"
 }
 
-databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.REF}("UID" TEXT PRIMARY KEY, "username" TEXT NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.users.REF}("UID" TEXT PRIMARY KEY, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.personalGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "REF" TEXT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.publicGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 databaseServer.query(`CREATE TABLE IF NOT EXISTS ${databaseInstances.serverGroups.REF}("UID" BIGSERIAL PRIMARY KEY, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
