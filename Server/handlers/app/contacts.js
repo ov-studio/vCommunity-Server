@@ -84,11 +84,13 @@ module.exports = {
     socket.on("App:onClientFriendRequest", async function(UID, requestType) {
       if (!UID || !requestType) return false
       const CInstances = instanceHandler.getInstancesBySocket(this)
-      if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
+      if (!CInstances) return false
 
       var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       queryResult = databaseHandler.fetchSoloResult(queryResult)
       if (requestType == "send") {
+        console.log("TRYING TO SEND INVIT " + UID)
+        /*
         if (queryResult && ((queryResult.type == "friends") || (queryResult.type == "blocked"))) return false
         queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.users.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
         queryResult = databaseHandler.fetchSoloResult(queryResult)
@@ -98,8 +100,11 @@ module.exports = {
           type: "pending"
         })
         await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.users.functions.getDependencyREF("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        */
       } else {
+        if ((CInstances.UID == UID) || !await databaseHandler.instances.users.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.users.functions.isUserExisting(UID)) return false
         if (!queryResult || (queryResult.type != "pending")) return false
+
         if (requestType == "accept") {
           const groupUID = await databaseHandler.instances.personalGroups.functions.constructor({
             senderUID: UID,
