@@ -13,7 +13,6 @@
 -----------*/
 
 const {databaseServer, isTableExisting, prepareQuery, fetchSoloResult} = require("../servers/database")
-const utilityHandler = require("./utility")
 const databaseInstances = {}
 
 databaseInstances.users = {
@@ -109,6 +108,12 @@ databaseInstances.personalGroups = {
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, "message" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+        },
+
+        createMessage: async function(REF, payload) {
+          const preparedQuery = prepareQuery(payload)
+          var queryResult = await databaseServer.query(`INSERT INTO ${REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
+          return fetchSoloResult(queryResult)
         }
       }
     }
