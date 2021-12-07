@@ -75,18 +75,18 @@ module.exports = {
   syncUserGroups,
 
   injectSocket(socketServer, socket) {
-    socket.on("App:Group:Personal:onClientActionInput", async function(actionData) {
-      if (!actionData || !actionData.UID || !actionData.message || (typeof(actionData.message) != "string") || (actionData.message.length <= 0)) return false
+    socket.on("App:Group:Personal:onClientSendMessage", async function(messageData) {
+      if (!messageData || !messageData.UID || !messageData.message || (typeof(messageData.message) != "string") || (messageData.message.length <= 0)) return false
       const client_instance = instanceHandler.getInstancesBySocket(this)
       if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
 
-      const queryResult = await databaseHandler.instances.personalGroups.dependencies.messages.functions.createMessage(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", actionData.UID), {
-        message: actionData.message,
+      const queryResult = await databaseHandler.instances.personalGroups.dependencies.messages.functions.createMessage(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", messageData.UID), {
+        message: messageData.message,
         owner: client_instance.UID
       })
       if (queryResult) {
-        socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.UID).emit("App:Groups:Personal:onSyncMessages", {
-          UID: actionData.UID,
+        socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + messageData.UID).emit("App:Groups:Personal:onSyncMessages", {
+          UID: messageData.UID,
           messages: [queryResult]
         })
       }
