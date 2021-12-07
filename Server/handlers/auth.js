@@ -40,6 +40,7 @@ socketServer.of("/auth").on("connection", (socket) => {
 
     var constructorResult = await databaseHandler.instances.users.functions.constructor({
       UID: authResult.uid,
+      email: userData.email,
       username: userData.username,
       DOB: JSON.stringify(userData.DOB)
     })
