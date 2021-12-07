@@ -43,18 +43,6 @@ async function getUserGroups(UID, socket) {
   return fetchedGroups
 }
 
-async function prepareMessage(UID, groupUID, groupMessage) {
-  if (!UID && !groupUID && !groupMessage) return false
-  // TODO: ... INTEGRATE...
-  const timestamp = new Date().getTime()
-  return {
-    groupUID: groupUID,
-    groupMessages: [
-      {ownerUID: UID, messageUID: (UID + timestamp).toString(36), timestamp: timestamp, message: groupMessage}
-    ]
-  }
-}
-
 async function syncUserGroups(UID, socket) {
   if (!UID && !socket) return false
   let fetchedInstances = null
@@ -92,9 +80,12 @@ module.exports = {
       const client_instance = instanceHandler.getInstancesBySocket(this)
       if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
 
-      const preparedMessage = await prepareMessage(client_instance.UID, actionData.groupUID, actionData.message)
-      console.log(preparedMessage)
-      socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.groupUID).emit("App:onSyncPersonalGroups", preparedMessage)
+      const queryResult = await databaseHandler.instances.personalGroups.dependencies.messages.functions.createMessage(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", actionData.groupUID), {
+        message: actionData.message,
+        owner: client_instance.UID
+      })
+      console.log(queryResult)
+      if (queryResult) socketServer.of("/app").to(databaseHandler.instances.personalGroups.prefix + "_" + actionData.groupUID).emit("App:onSyncPersonalGroups", queryResult)
       return true
     })
   }
