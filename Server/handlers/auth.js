@@ -22,32 +22,32 @@ const databaseHandler = require("./database")
 ------------*/
 
 socketServer.of("/auth").on("connection", (socket) => {
-  socket.on("Auth:onClientLogin", async function(userData) {
-    if (!userData) return false
+  socket.on("Auth:onClientLogin", async function(authData, isReAuthRequest) {
+    if (!authData) return false
 
     const socketReference = this
     var authResult = false
     try {
-      authResult = await authServer.auth().getUserByEmail(userData.email)
+      authResult = await authServer.auth().getUserByEmail(authData.email)
     } catch(error) {
-      return socketReference.emit("Auth:onClientLogin", {status: error.code})
+      return socketReference.emit("Auth:onClientLogin", {status: error.code}, isReAuthRequest)
     }
 
     const queryResult = await databaseHandler.instances.users.functions.isUserExisting(authResult.uid, true)
-    if (!queryResult) return socketReference.emit("Auth:onClientLogin", {status: "auth/failed"})
-    queryResult.password = userData.password
-    socketReference.emit("Auth:onClientLogin", queryResult)
+    if (!queryResult) return socketReference.emit("Auth:onClientLogin", {status: "auth/failed"}, isReAuthRequest)
+    if (!isReAuthRequest) queryResult.password = authData.password
+    socketReference.emit("Auth:onClientLogin", queryResult, isReAuthRequest)
   })
 
-  socket.on("Auth:onClientRegister", async function(userData) {
-    if (!userData) return false
+  socket.on("Auth:onClientRegister", async function(authData) {
+    if (!authData) return false
 
     const socketReference = this
     var authResult = false
     try {
       authResult = await authServer.auth().createUser({
-        email: userData.email,
-        password: userData.password,
+        email: authData.email,
+        password: authData.password,
         emailVerified: false,
         disabled: false
       })
@@ -57,9 +57,9 @@ socketServer.of("/auth").on("connection", (socket) => {
 
     const queryResult = await databaseHandler.instances.users.functions.constructor({
       UID: authResult.uid,
-      email: userData.email,
-      username: userData.username,
-      DOB: JSON.stringify(userData.DOB)
+      email: authData.email,
+      username: authData.username,
+      DOB: JSON.stringify(authData.DOB)
     })
     if (!queryResult.success) authServer.auth().deleteUser(authResult.uid)
     socketReference.emit("Auth:onClientRegister", queryResult)
