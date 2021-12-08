@@ -22,6 +22,23 @@ const databaseHandler = require("./database")
 ------------*/
 
 socketServer.of("/auth").on("connection", (socket) => {
+  socket.on("Auth:onClientLogin", async function(userData) {
+    if (!userData) return false
+
+    const socketReference = this
+    var authResult = false
+    try {
+      authResult = await authServer.auth().getUserByEmail(userData.email)
+    } catch(error) {
+      return socketReference.emit("Auth:onClientLogin", {status: error.code})
+    }
+
+    const queryResult = await databaseHandler.instances.users.functions.isUserExisting(authResult.uid, true)
+    if (!queryResult) return socketReference.emit("Auth:onClientLogin", {status: "auth/failed"})
+    queryResult.password = userData.password
+    socketReference.emit("Auth:onClientLogin", queryResult)
+  })
+
   socket.on("Auth:onClientRegister", async function(userData) {
     if (!userData) return false
 
