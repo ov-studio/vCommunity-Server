@@ -77,7 +77,7 @@ async function syncUserContacts(UID, socket) {
   return true
 }
 
-eventServer.on("App:onClientConnect", function(socket, UID) {
+eventServer.on("App:onClientConnect", function(socket, UID, socketServer) {
   socket.on("App:Contacts:onClientFriendRequest", async function(UID, requestType) {
     if (!UID || !requestType) return false
     const CInstances = instanceHandler.getInstancesBySocket(this)
