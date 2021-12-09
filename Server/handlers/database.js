@@ -38,10 +38,14 @@ databaseInstances.users = {
       return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix + "\""
     },
 
-    isUserExisting: async function(UID, fetchData) {
+    isUserExisting: async function(UID, fetchData, fetchPassword) {
       if (!UID) return false
-      const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.REF} WHERE "UID" = '${UID}'`)
-      if (fetchData) return fetchSoloResult(queryResult)
+      var queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.users.REF} WHERE "UID" = '${UID}'`)
+      if (fetchData) {
+        queryResult = fetchSoloResult(queryResult)
+        if (queryResult && (!fetchPassword)) delete queryResult.password
+        return queryResult
+      }
       else return (queryResult && (queryResult.rows.length > 0)) || false
     },
 
