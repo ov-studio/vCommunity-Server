@@ -45,7 +45,7 @@ module.exports = {
       const socketID = this.id
       clientInstances[UID][socketID] = this
       socketInstances[socketID] = UID
-      eventServer.emit("App:onClientConnect", this, UID, socketServer)
+      eventServer.emit("App:onClientConnect", this, UID)
     })
 
     socket.on("disconnect", function() {

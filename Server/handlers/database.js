@@ -105,6 +105,11 @@ databaseInstances.personalGroups = {
       return "\"" + databaseInstances.personalGroups.prefix + "_" + UID + "_" + databaseInstances.personalGroups.dependencies[dependency].prefix + "\""
     },
 
+    getRoomREF: function(UID) {
+      if (!UID) return false
+      return databaseInstances.personalGroups.prefix + "_" + UID
+    },
+
     isGroupExisting: async function(UID) {
       if (!UID) return false
       const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.REF} WHERE "UID" = '${UID}'`)
