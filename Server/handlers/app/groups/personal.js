@@ -71,9 +71,9 @@ async function syncUserGroups(UID, socket) {
 eventServer.on("App:Groups:Personal:onSync", syncUserGroups)
 
 
-/*----------------------------------
--- Event (App): On Client Connect --
-----------------------------------*/
+/*----------------------------
+-- Event: On Client Connect --
+----------------------------*/
 
 eventServer.on("App:onClientConnect", function(socket, UID, socketServer) {
   socket.on("App:Group:Personal:onClientSendMessage", async function(messageData) {

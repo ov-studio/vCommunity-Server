@@ -76,11 +76,12 @@ async function syncUserContacts(UID, socket) {
   })
   return true
 }
+eventServer.on("App:Contacts:onSync", syncUserContacts)
 
 
-/*----------------------------------
--- Event (App): On Client Connect --
-----------------------------------*/
+/*----------------------------
+-- Event: On Client Connect --
+----------------------------*/
 
 eventServer.on("App:onClientConnect", function(socket, UID, socketServer) {
   socket.on("App:Contacts:onClientFriendRequest", async function(UID, requestType) {
