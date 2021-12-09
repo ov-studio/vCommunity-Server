@@ -60,13 +60,16 @@ async function syncUserGroups(UID, socket) {
 
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
-  fetchedGroups.forEach(async function(groupData) {
-    const queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
-    const groupRoom = databaseHandler.instances.personalGroups.functions.getRoomREF(groupData.UID)
-    Object.entries(fetchedInstances).forEach(function(clientInstance) {
+  Object.entries(fetchedInstances).forEach(function(clientInstance) {
+    fetchedGroups.forEach(function(groupData) {
+      const groupRoom = databaseHandler.instances.personalGroups.functions.getRoomREF(groupData.UID)
       clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
       clientInstance[1].join(groupRoom)
     })
+  })
+  fetchedGroups.forEach(async function(groupData) {
+    const groupRoom = databaseHandler.instances.personalGroups.functions.getRoomREF(groupData.UID)
+    const queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
     socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncMessages", {
       UID: groupData.UID,
       messages: queryResult.rows
