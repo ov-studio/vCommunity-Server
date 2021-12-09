@@ -44,6 +44,6 @@ module.exports = {
   },
 
   fetchSoloResult(queryResult) {
-    return (queryResult && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
+    return (queryResult && queryResult.rows && (queryResult.rows.length > 0) && queryResult.rows[0]) || false
   }
 }
