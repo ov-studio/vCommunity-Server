@@ -15,6 +15,11 @@
 const {databaseServer, isTableExisting, prepareQuery, fetchSoloResult} = require("../servers/database")
 const databaseInstances = {}
 
+
+/*-----------
+-- Modules --
+-----------*/
+
 databaseInstances.users = {
   REF: "\"APP_USERS\"",
   prefix: "usr",
