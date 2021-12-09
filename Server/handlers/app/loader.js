@@ -14,10 +14,10 @@
 
 const socketServer = require("../../servers/socket")
 const socketDependencies = [
-  require("./instance"),
-  require("./contacts"),
-  require("./groups/personal")
+  require("./instance")
 ]
+require("./contacts")
+require("./groups/personal")
 require("./syncer")
 
 
