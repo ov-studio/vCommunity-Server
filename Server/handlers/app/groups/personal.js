@@ -70,6 +70,11 @@ async function syncUserGroups(UID, socket) {
 }
 eventServer.on("App:Groups:Personal:onSync", syncUserGroups)
 
+
+/*----------------------------------
+-- Event (App): On Client Connect --
+----------------------------------*/
+
 eventServer.on("App:onClientConnect", function(socket, UID, socketServer) {
   socket.on("App:Group:Personal:onClientSendMessage", async function(messageData) {
     if (!messageData || !messageData.UID || !messageData.message || (typeof(messageData.message) != "string") || (messageData.message.length <= 0)) return false

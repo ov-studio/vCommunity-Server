@@ -77,6 +77,11 @@ async function syncUserContacts(UID, socket) {
   return true
 }
 
+
+/*----------------------------------
+-- Event (App): On Client Connect --
+----------------------------------*/
+
 eventServer.on("App:onClientConnect", function(socket, UID, socketServer) {
   socket.on("App:Contacts:onClientFriendRequest", async function(UID, requestType) {
     if (!UID || !requestType) return false
