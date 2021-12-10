@@ -68,12 +68,13 @@ async function syncUserGroups(UID, socket) {
     })
   })
   fetchedGroups.forEach(async function(groupData) {
-    const groupRoom = databaseHandler.instances.personalGroups.functions.getRoomREF(groupData.UID)
     const queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
-    // TODO: EMITTED TO EVERYONE SHOULD ONLY BE EMITTED TO PARTICULAR SOCKET
-    socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncMessages", {
-      UID: groupData.UID,
-      messages: queryResult.rows
+    // TODO: EMITTED TO EVERYONE SHOULD ONLY BE EMITTED TO PARTICULAR 
+    Object.entries(fetchedInstances).forEach(function(clientInstance) {
+      clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
+        UID: groupData.UID,
+        messages: queryResult.rows
+      })
     })
   })
   return true
