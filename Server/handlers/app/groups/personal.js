@@ -14,6 +14,7 @@
 
 const socketServer = require("../../../servers/socket")
 const eventServer = require("../../../servers/event")
+const utilityHandler = require("../../utility")
 const databaseHandler = require("../../database")
 const instanceHandler = require("../instance")
 const contactsHandler = require("../contacts")
@@ -76,6 +77,17 @@ async function syncUserGroups(UID, socket) {
         messages: queryResult.rows
       })
     })
+    //TODO: USEFUL FOR LAZY LOADING!!! TO BE INTEGRATED SOON
+    //const queryResult2 = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} WHERE "DOC" < '2021-12-08T14:05:29.389Z'`)
+    /*
+    const queryResult2 = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
+    if (queryResult2.rows.length > 0) {
+      const rowtest = queryResult2.rows[(queryResult2.rows.length - 1)]
+      console.log(rowtest)
+      const previousWeek = utilityHandler.castWeekTimeStamp(rowtest.DOC, 1, true)
+      console.log(previousWeek)
+    }
+    */
   })
   return true
 }
