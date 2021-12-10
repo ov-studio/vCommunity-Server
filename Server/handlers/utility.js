@@ -30,5 +30,12 @@ module.exports = {
       seconds: Math.floor((milliseconds/1000) % 60),
       milliseconds: parseInt((milliseconds%1000) / 100)
     }
+  },
+
+  castWeekTimeStamp(timestamp, weekAmount, isBackward) {
+    if (!timestamp || !weekAmount) return false
+    if (isBackward) timestamp.setDate(timestamp.getDate() - (7*weekAmount))
+    else timestamp.setDate(timestamp.getDate() + (7*weekAmount))
+    return timestamp
   }
 }
