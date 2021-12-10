@@ -14,7 +14,6 @@
 
 const socketServer = require("../../../servers/socket")
 const eventServer = require("../../../servers/event")
-const utilityHandler = require("../../utility")
 const databaseHandler = require("../../database")
 const instanceHandler = require("../instance")
 const contactsHandler = require("../contacts")
@@ -72,23 +71,14 @@ async function syncUserGroups(UID, socket) {
   fetchedGroups.forEach(async function(groupData) {
     var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} ORDER BY "DOC" DESC LIMIT 1`)
     queryResult = databaseHandler.fetchSoloResult(queryResult)
-    if (queryResult) {
-      // TODO: INTEGRATE INTO CUSTOM WRAPPER TO FETCH WEEKLY MESSAGES..
-      let start_timestamp = utilityHandler.castWeekTimeStamp(queryResult.DOC, 1, true)
-      start_timestamp = start_timestamp.toISOString()
-      let end_timestamp = queryResult.DOC
-      end_timestamp.setSeconds(end_timestamp.getSeconds() + 1) //IMPORTANT..
-      end_timestamp = end_timestamp.toISOString()
-
-      queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} WHERE "DOC" >= '${start_timestamp}' AND "DOC" < '${end_timestamp}' ORDER BY "DOC" ASC`)
-      console.log(queryResult.rows)
-      Object.entries(fetchedInstances).forEach(function(clientInstance) {
-        clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
-          UID: groupData.UID,
-          messages: queryResult.rows
-        })
+    const groupMessages = await databaseHandler.instances.personalGroups.functions.getGroupMessages(groupData.UID, null, 1)
+    if (!groupMessages) return false
+    Object.entries(fetchedInstances).forEach(function(clientInstance) {
+      clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
+        UID: groupData.UID,
+        messages: groupMessages
       })
-    }
+    })
   })
   return true
 }

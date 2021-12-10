@@ -13,6 +13,7 @@
 -----------*/
 
 const {databaseServer, isTableExisting, prepareQuery, fetchSoloResult} = require("../servers/database")
+const utilityHandler = require("./utility")
 const databaseInstances = {}
 
 
@@ -115,6 +116,24 @@ databaseInstances.personalGroups = {
       const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.REF} WHERE "UID" = '${UID}'`)
       return (queryResult && queryResult.rows.length > 0) || false
     },
+
+    getGroupMessages: async function(UID, timestamp, weekAmount) {
+      if (!UID || !weekAmount || !await databaseInstances.personalGroups.functions.isGroupExisting(UID)) return false
+      const dependencyREF = databaseInstances.personalGroups.functions.getDependencyREF("messages", UID)
+      if (!timestamp) {
+        let queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} ORDER BY "DOC" DESC LIMIT 1`)
+        queryResult = fetchSoloResult(queryResult)
+        if (queryResult) timestamp = queryResult.DOC
+      }
+      if (!timestamp) return false
+
+      const ranges = [utilityHandler.castWeekTimeStamp(timestamp, weekAmount, true), timestamp]
+      ranges[0] = ranges[0].toISOString()
+      ranges[1].setSeconds(ranges[1].getSeconds() + 1)
+      ranges[1] = ranges[1].toISOString()
+      const queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} WHERE "DOC" >= '${ranges[0]}' AND "DOC" < '${ranges[1]}' ORDER BY "DOC" ASC`)
+      return queryResult.rows
+    }
   },
 
   dependencies: {
