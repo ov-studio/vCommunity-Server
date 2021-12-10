@@ -70,24 +70,25 @@ async function syncUserGroups(UID, socket) {
     })
   })
   fetchedGroups.forEach(async function(groupData) {
-    const queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
-    Object.entries(fetchedInstances).forEach(function(clientInstance) {
-      clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
-        UID: groupData.UID,
-        messages: queryResult.rows
+    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} ORDER BY "DOC" DESC LIMIT 1`)
+    queryResult = databaseHandler.fetchSoloResult(queryResult)
+    if (queryResult) {
+      // TODO: INTEGRATE INTO CUSTOM WRAPPER TO FETCH WEEKLY MESSAGES..
+      let start_timestamp = utilityHandler.castWeekTimeStamp(queryResult.DOC, 1, true)
+      start_timestamp = start_timestamp.toISOString()
+      let end_timestamp = queryResult.DOC
+      end_timestamp.setSeconds(end_timestamp.getSeconds() + 1) //IMPORTANT..
+      end_timestamp = end_timestamp.toISOString()
+
+      queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} WHERE "DOC" >= '${start_timestamp}' AND "DOC" < '${end_timestamp}' ORDER BY "DOC" ASC`)
+      console.log(queryResult.rows)
+      Object.entries(fetchedInstances).forEach(function(clientInstance) {
+        clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
+          UID: groupData.UID,
+          messages: queryResult.rows
+        })
       })
-    })
-    //TODO: USEFUL FOR LAZY LOADING!!! TO BE INTEGRATED SOON
-    //const queryResult2 = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} WHERE "DOC" < '2021-12-08T14:05:29.389Z'`)
-    /*
-    const queryResult2 = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
-    if (queryResult2.rows.length > 0) {
-      const rowtest = queryResult2.rows[(queryResult2.rows.length - 1)]
-      console.log(rowtest)
-      const previousWeek = utilityHandler.castWeekTimeStamp(rowtest.DOC, 1, true)
-      console.log(previousWeek)
     }
-    */
   })
   return true
 }

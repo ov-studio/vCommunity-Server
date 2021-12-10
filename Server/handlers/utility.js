@@ -34,6 +34,7 @@ module.exports = {
 
   castWeekTimeStamp(timestamp, weekAmount, isBackward) {
     if (!timestamp || !weekAmount) return false
-    return timestamp.setDate(timestamp.getDate() + (((isBackward && -1) || 1)*(7*weekAmount)))
+    timestamp = new Date(timestamp)
+    return new Date(timestamp.setDate(timestamp.getDate() + (((isBackward && -1) || 1)*(7*weekAmount))))
   }
 }
