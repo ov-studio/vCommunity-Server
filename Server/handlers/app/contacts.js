@@ -69,6 +69,7 @@ async function syncUserContacts(UID, socket) {
   }
   if (!fetchedInstances) return false
 
+  // TODO: ADD PARAM TO SYNC TO PARTICULAR USER INSTANCE
   const fetchedContacts = await getUserContacts(UID)
   if (!fetchedContacts) return false
   Object.entries(fetchedInstances).forEach(function(clientInstance) {

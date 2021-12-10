@@ -58,6 +58,7 @@ async function syncUserGroups(UID, socket) {
   }
   if (!fetchedInstances) return false
 
+  // TODO: ADD PARAM TO SYNC TO PARTICULAR USER INSTANCE
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
@@ -69,7 +70,6 @@ async function syncUserGroups(UID, socket) {
   })
   fetchedGroups.forEach(async function(groupData) {
     const queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)}`)
-    // TODO: EMITTED TO EVERYONE SHOULD ONLY BE EMITTED TO PARTICULAR 
     Object.entries(fetchedInstances).forEach(function(clientInstance) {
       clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
         UID: groupData.UID,
