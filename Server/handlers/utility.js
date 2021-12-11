@@ -32,9 +32,9 @@ module.exports = {
     }
   },
 
-  castWeekTimeStamp(timestamp, weekAmount, isBackward) {
-    if (!timestamp || !weekAmount) return false
+  castDayTimeStamp(timestamp, days, isReverse) {
+    if (!timestamp || !days) return false
     timestamp = new Date(timestamp)
-    return new Date(timestamp.setDate(timestamp.getDate() + (((isBackward && -1) || 1)*(7*weekAmount))))
+    return new Date(timestamp.setDate(timestamp.getDate() + (((isReverse && -1) || 1)*days)))
   }
 }
