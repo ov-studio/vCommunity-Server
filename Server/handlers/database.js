@@ -136,6 +136,7 @@ databaseInstances.personalGroups = {
             let queryResult = await databaseServer.query(`SELECT * FROM ${REF} ORDER BY "DOC" DESC LIMIT 1`)
             queryResult = fetchSoloResult(queryResult)
             if (queryResult) UID = queryResult.UID
+            //TODO: MAYBE RETURN HERE..
           }
           if (!UID) return false
           const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "DOC" DESC LIMIT 2`)

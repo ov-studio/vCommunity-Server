@@ -97,7 +97,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const groupMessages = await databaseHandler.instances.personalGroups.dependencies.messages.functions.fetchMessages(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", messageData.UID), messageData.messageUID, 1)
     if (!groupMessages) return false
     this.emit("App:Groups:Personal:onSyncMessages", {
-      UID: UID,
+      UID: messageData.UID,
       messages: groupMessages,
       isPostLoad: true
     })
