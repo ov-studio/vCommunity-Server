@@ -120,7 +120,7 @@ databaseInstances.personalGroups = {
   dependencies: {
     messages: {
       suffix: "msgs",
-      syncRate: 100,
+      syncRate: 3, //TODO: INCREASE LATER..
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, "message" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
@@ -145,6 +145,7 @@ databaseInstances.personalGroups = {
             if (queryResult) UID = queryResult.UID + 1
           }
           if (!UID) return false
+
           const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "UID" DESC LIMIT '${databaseInstances.personalGroups.dependencies.messages.syncRate}'`)
           queryResult.rows.reverse()
           return queryResult.rows
