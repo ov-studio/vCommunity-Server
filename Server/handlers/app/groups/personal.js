@@ -94,7 +94,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const client_instance = instanceHandler.getInstancesBySocket(this)
     if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
 
-    const groupMessages = await databaseHandler.instances.personalGroups.dependencies.messages.functions.fetchMessages(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID, 1)
+    const groupMessages = await databaseHandler.instances.personalGroups.dependencies.messages.functions.fetchMessages(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID)
     if (!groupMessages) return false
     this.emit("App:Groups:Personal:onSyncMessages", {
       UID: requestData.UID,
