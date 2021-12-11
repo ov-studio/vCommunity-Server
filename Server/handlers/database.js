@@ -120,6 +120,7 @@ databaseInstances.personalGroups = {
   dependencies: {
     messages: {
       suffix: "msgs",
+      syncRate: 100,
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, "message" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
@@ -127,7 +128,13 @@ databaseInstances.personalGroups = {
 
         createMessage: async function(REF, payload) {
           const preparedQuery = prepareQuery(payload)
-          var queryResult = await databaseServer.query(`INSERT INTO ${REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
+          const queryResult = await databaseServer.query(`INSERT INTO ${REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
+          return fetchSoloResult(queryResult)
+        },
+
+        fetchMessage: async function(REF, UID) {
+          if (!UID) return false
+          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" = '${UID}'`)
           return fetchSoloResult(queryResult)
         },
 
@@ -138,7 +145,7 @@ databaseInstances.personalGroups = {
             if (queryResult) UID = queryResult.UID + 1
           }
           if (!UID) return false
-          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "UID" DESC LIMIT 2`)
+          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "UID" DESC LIMIT '${databaseInstances.personalGroups.dependencies.messages.syncRate}'`)
           queryResult.rows.reverse()
           return queryResult.rows
         }
