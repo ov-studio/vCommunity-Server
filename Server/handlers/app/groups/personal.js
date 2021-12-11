@@ -69,9 +69,7 @@ async function syncUserGroups(UID, socket) {
     })
   })
   fetchedGroups.forEach(async function(groupData) {
-    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", groupData.UID)} ORDER BY "DOC" DESC LIMIT 1`)
-    queryResult = databaseHandler.fetchSoloResult(queryResult)
-    const groupMessages = await databaseHandler.instances.personalGroups.functions.getGroupMessages(groupData.UID, null, 1)
+    const groupMessages = await databaseHandler.instances.personalGroups.dependencies.messages.functions.fetchMessages(groupData.UID)
     if (!groupMessages) return false
     Object.entries(fetchedInstances).forEach(function(clientInstance) {
       clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
@@ -90,6 +88,22 @@ eventServer.on("App:Groups:Personal:onSync", syncUserGroups)
 ----------------------------*/
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
+  socket.on("App:Group:Personal:onClientFetchMessages", async function(UID, messageUID) {
+    if (!UID || !messageUID) return false
+    const client_instance = instanceHandler.getInstancesBySocket(this)
+    if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
+
+    // TODO: WIP..
+    const groupMessages = await databaseHandler.instances.personalGroups.dependencies.messages.functions.fetchMessages(UID, messageUID, 1)
+    if (!groupMessages) return false
+    this.emit("App:Groups:Personal:onSyncMessages", {
+      UID: UID,
+      messages: groupMessages,
+      topPush: true
+    })
+    return true
+  })
+
   socket.on("App:Group:Personal:onClientSendMessage", async function(messageData) {
     if (!messageData || !messageData.UID || !messageData.message || (typeof(messageData.message) != "string") || (messageData.message.length <= 0)) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)

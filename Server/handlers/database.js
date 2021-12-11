@@ -13,7 +13,6 @@
 -----------*/
 
 const {databaseServer, isTableExisting, prepareQuery, fetchSoloResult} = require("../servers/database")
-const utilityHandler = require("./utility")
 const databaseInstances = {}
 
 
@@ -115,24 +114,6 @@ databaseInstances.personalGroups = {
       if (!UID) return false
       const queryResult = await databaseServer.query(`SELECT * FROM ${databaseInstances.personalGroups.REF} WHERE "UID" = '${UID}'`)
       return (queryResult && queryResult.rows.length > 0) || false
-    },
-
-    getGroupMessages: async function(UID, timestamp, weekAmount) {
-      if (!UID || !weekAmount || !await databaseInstances.personalGroups.functions.isGroupExisting(UID)) return false
-      const dependencyREF = databaseInstances.personalGroups.functions.getDependencyREF("messages", UID)
-      if (!timestamp) {
-        let queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} ORDER BY "DOC" DESC LIMIT 1`)
-        queryResult = fetchSoloResult(queryResult)
-        if (queryResult) timestamp = queryResult.DOC
-      }
-      if (!timestamp) return false
-
-      const ranges = [utilityHandler.castWeekTimeStamp(timestamp, weekAmount, true), timestamp]
-      ranges[0] = ranges[0].toISOString()
-      ranges[1].setSeconds(ranges[1].getSeconds() + 1)
-      ranges[1] = ranges[1].toISOString()
-      const queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} WHERE "DOC" >= '${ranges[0]}' AND "DOC" < '${ranges[1]}' ORDER BY "DOC" ASC`)
-      return queryResult.rows
     }
   },
 
@@ -148,6 +129,20 @@ databaseInstances.personalGroups = {
           const preparedQuery = prepareQuery(payload)
           var queryResult = await databaseServer.query(`INSERT INTO ${REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
           return fetchSoloResult(queryResult)
+        },
+
+        fetchMessages: async function(groupUID, UID) {
+          if (!groupUID || !await databaseInstances.personalGroups.functions.isGroupExisting(groupUID)) return false
+          const dependencyREF = databaseInstances.personalGroups.functions.getDependencyREF("messages", groupUID)
+          if (!UID) {
+            let queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} ORDER BY "DOC" DESC LIMIT 1`)
+            queryResult = fetchSoloResult(queryResult)
+            if (queryResult) UID = queryResult.UID
+          }
+          if (!UID) return false
+    
+          const queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} WHERE "UID" < '${UID}' ORDER BY "DOC" DESC LIMIT 2`)
+          return queryResult.rows
         }
       }
     }
