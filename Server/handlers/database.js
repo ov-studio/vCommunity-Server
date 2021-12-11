@@ -120,7 +120,7 @@ databaseInstances.personalGroups = {
   dependencies: {
     messages: {
       suffix: "msgs",
-      syncRate: 3, //TODO: INCREASE LATER..
+      syncRate: 250,
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, "message" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
