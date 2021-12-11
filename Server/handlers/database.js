@@ -40,7 +40,7 @@ databaseInstances.users = {
 
     getDependencyREF: function(dependency, UID) {
       if (!dependency || !databaseInstances.users.dependencies[dependency] || !UID) return false
-      return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].prefix + "\""
+      return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].suffix + "\""
     },
 
     isUserExisting: async function(UID, fetchData, fetchPassword) {
@@ -64,7 +64,7 @@ databaseInstances.users = {
 
   dependencies: {
     contacts: {
-      prefix: "cntcs",
+      suffix: "cntcs",
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, "type" TEXT NOT NULL, "group" BIGINT UNIQUE, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
@@ -102,7 +102,7 @@ databaseInstances.personalGroups = {
 
     getDependencyREF: function(dependency, UID) {
       if (!dependency || !databaseInstances.personalGroups.dependencies[dependency] || !UID) return false
-      return "\"" + databaseInstances.personalGroups.prefix + "_" + UID + "_" + databaseInstances.personalGroups.dependencies[dependency].prefix + "\""
+      return "\"" + databaseInstances.personalGroups.prefix + "_" + UID + "_" + databaseInstances.personalGroups.dependencies[dependency].suffix + "\""
     },
 
     getRoomREF: function(UID) {
@@ -119,7 +119,7 @@ databaseInstances.personalGroups = {
 
   dependencies: {
     messages: {
-      prefix: "msgs",
+      suffix: "msgs",
       functions: {
         constructor: function(REF) {
           return databaseServer.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" BIGSERIAL PRIMARY KEY, "message" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
