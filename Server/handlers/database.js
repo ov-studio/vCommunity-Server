@@ -138,7 +138,8 @@ databaseInstances.personalGroups = {
             if (queryResult) UID = queryResult.UID + 1
           }
           if (!UID) return false
-          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "UID" DESC LIMIT 1`)
+          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "UID" DESC LIMIT 2`)
+          queryResult.rows.reverse()
           return queryResult.rows
         }
       }
