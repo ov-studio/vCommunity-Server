@@ -133,13 +133,12 @@ databaseInstances.personalGroups = {
 
         fetchMessages: async function(REF, UID) {
           if (!UID) {
-            let queryResult = await databaseServer.query(`SELECT * FROM ${REF} ORDER BY "DOC" DESC LIMIT 1`)
+            let queryResult = await databaseServer.query(`SELECT * FROM ${REF} ORDER BY "UID" DESC LIMIT 1`)
             queryResult = fetchSoloResult(queryResult)
-            if (queryResult) UID = queryResult.UID
-            //TODO: MAYBE RETURN HERE..
+            if (queryResult) UID = queryResult.UID + 1
           }
           if (!UID) return false
-          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "DOC" DESC LIMIT 2`)
+          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "UID" DESC LIMIT 1`)
           return queryResult.rows
         }
       }
