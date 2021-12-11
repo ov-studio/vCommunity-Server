@@ -131,17 +131,14 @@ databaseInstances.personalGroups = {
           return fetchSoloResult(queryResult)
         },
 
-        fetchMessages: async function(groupUID, UID) {
-          if (!groupUID || !await databaseInstances.personalGroups.functions.isGroupExisting(groupUID)) return false
-          const dependencyREF = databaseInstances.personalGroups.functions.getDependencyREF("messages", groupUID)
+        fetchMessages: async function(REF, UID) {
           if (!UID) {
-            let queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} ORDER BY "DOC" DESC LIMIT 1`)
+            let queryResult = await databaseServer.query(`SELECT * FROM ${REF} ORDER BY "DOC" DESC LIMIT 1`)
             queryResult = fetchSoloResult(queryResult)
             if (queryResult) UID = queryResult.UID
           }
           if (!UID) return false
-    
-          const queryResult = await databaseServer.query(`SELECT * FROM ${dependencyREF} WHERE "UID" < '${UID}' ORDER BY "DOC" DESC LIMIT 2`)
+          const queryResult = await databaseServer.query(`SELECT * FROM ${REF} WHERE "UID" < '${UID}' ORDER BY "DOC" DESC LIMIT 2`)
           return queryResult.rows
         }
       }
