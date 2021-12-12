@@ -107,19 +107,18 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Group:Personal:onClientSendMessage", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.message || (typeof(requestData.message) != "string") || (requestData.message.length <= 0)) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
+    if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.personalGroups.functions.isGroupExisting(requestData.UID)) return false
 
     const queryResult = await databaseHandler.instances.personalGroups.dependencies.messages.functions.createMessage(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", requestData.UID), {
       message: requestData.message,
       owner: client_instance.UID
     })
-    if (queryResult) {
-      const groupRoom = databaseHandler.instances.personalGroups.functions.getRoomREF(requestData.UID)
-      socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncMessages", {
-        UID: requestData.UID,
-        messages: [queryResult]
-      })
-    }
+    if (!queryResult) return false
+    const groupRoom = databaseHandler.instances.personalGroups.functions.getRoomREF(requestData.UID)
+    socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncMessages", {
+      UID: requestData.UID,
+      messages: [queryResult]
+    })
     return true
   })
 })
