@@ -25,24 +25,22 @@ socketServer.of("/auth").on("connection", (socket) => {
   socket.on("Auth:onClientLogin", async function(authData, isReAuthRequest) {
     if (!authData) return false
 
-    const socketReference = this
     var authResult = false
     try {
       authResult = await authServer.auth().getUserByEmail(authData.email)
     } catch(error) {
-      return socketReference.emit("Auth:onClientLogin", {status: error.code}, isReAuthRequest)
+      return this.emit("Auth:onClientLogin", {status: error.code}, isReAuthRequest)
     }
 
     const queryResult = await databaseHandler.instances.users.functions.isUserExisting(authResult.uid, true)
-    if (!queryResult) return socketReference.emit("Auth:onClientLogin", {status: "auth/failed"}, isReAuthRequest)
+    if (!queryResult) return this.emit("Auth:onClientLogin", {status: "auth/failed"}, isReAuthRequest)
     if (!isReAuthRequest) queryResult.password = authData.password
-    socketReference.emit("Auth:onClientLogin", queryResult, isReAuthRequest)
+    this.emit("Auth:onClientLogin", queryResult, isReAuthRequest)
   })
 
   socket.on("Auth:onClientRegister", async function(authData) {
     if (!authData) return false
 
-    const socketReference = this
     var authResult = false
     try {
       authResult = await authServer.auth().createUser({
@@ -52,7 +50,7 @@ socketServer.of("/auth").on("connection", (socket) => {
         disabled: false
       })
     } catch(error) {
-      return socketReference.emit("Auth:onClientRegister", {status: error.code})
+      return this.emit("Auth:onClientRegister", {status: error.code})
     }
 
     const queryResult = await databaseHandler.instances.users.functions.constructor({
@@ -62,6 +60,6 @@ socketServer.of("/auth").on("connection", (socket) => {
       DOB: JSON.stringify(authData.DOB)
     })
     if (!queryResult.success) authServer.auth().deleteUser(authResult.uid)
-    socketReference.emit("Auth:onClientRegister", queryResult)
+    this.emit("Auth:onClientRegister", queryResult)
   })
 })
