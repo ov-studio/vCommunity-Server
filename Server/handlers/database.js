@@ -38,6 +38,16 @@ databaseInstances.users = {
       return {success: true, status: "auth/successful"}
     },
 
+    destructor: async function(UID) {
+      if (!await databaseInstances.users.functions.isUserExisting(UID)) return false
+
+      await databaseServer.query(`DELETE FROM ${databaseInstances.users.REF} WHERE "UID" = '${UID}'`)
+      for (const dependency in dependencies) {
+        await databaseServer.query(`DROP TABLE IF EXISTS ${databaseInstances.users.functions.getDependencyREF(dependencies[dependency][0], UID)}`)
+      }
+      return true
+    },
+
     getDependencyREF: function(dependency, UID) {
       if (!dependency || !databaseInstances.users.dependencies[dependency] || !UID) return false
       return "\"" + databaseInstances.users.prefix + "_" + UID + "_" + databaseInstances.users.dependencies[dependency].suffix + "\""
@@ -98,6 +108,16 @@ databaseInstances.personalGroups = {
         await dependencies[dependency][1].functions.constructor(databaseInstances.personalGroups.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
       }
       return payload.UID
+    },
+
+    destructor: async function(UID) {
+      if (!await databaseInstances.personalGroups.functions.isGroupExisting(UID)) return false
+
+      await databaseServer.query(`DELETE FROM ${databaseInstances.personalGroups.REF} WHERE "UID" = '${UID}'`)
+      for (const dependency in dependencies) {
+        await databaseServer.query(`DROP TABLE IF EXISTS ${databaseInstances.personalGroups.functions.getDependencyREF(dependencies[dependency][0], UID)}`)
+      }
+      return true
     },
 
     getDependencyREF: function(dependency, UID) {
