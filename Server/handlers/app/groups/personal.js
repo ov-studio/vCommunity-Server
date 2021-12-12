@@ -92,7 +92,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Group:Personal:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID)) return false
+    if (!client_instance || !await databaseHandler.instances.users.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.personalGroups.functions.isGroupExisting(requestData.UID)) return false
 
     const groupMessages = await databaseHandler.instances.personalGroups.dependencies.messages.functions.fetchMessages(databaseHandler.instances.personalGroups.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID)
     if (!groupMessages) return false
