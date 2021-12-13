@@ -119,6 +119,14 @@ CModule.dependencies = {
         return fetchedContacts
       }
     }
+  },
+
+  groups: {
+    functions: {
+      fetchPersonalGroups: async function(UID) {
+        // TODO: ..
+      }
+    }
   }
 }
 
