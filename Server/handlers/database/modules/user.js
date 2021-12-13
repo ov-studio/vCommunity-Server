@@ -96,15 +96,15 @@ CModule.dependencies = {
         return moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, "type" TEXT NOT NULL, "group" BIGINT UNIQUE, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
       },
 
-      getContacts: async function(UID, type) {
+      fetchContacts: async function(UID, type) {
         if (!UID || !await CModule.functions.isUserExisting(UID)) return false
         if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
 
         if (type) {
-          var queryResult = await databaseHandler.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE type = '${type}'`)
+          var queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE type = '${type}'`)
           return (queryResult && queryResult.rows) || false
         }
-        var queryResult = await databaseHandler.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("contacts", UID)}`)
+        var queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("contacts", UID)}`)
         if (queryResult && (queryResult.rows.length > 0)) {
           queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
             const _type = contactData.type
