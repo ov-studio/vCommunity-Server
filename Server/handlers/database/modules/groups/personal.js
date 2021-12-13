@@ -121,7 +121,7 @@ CModule.dependencies = {
 ---------------------*/
 
 exports.injectModule = function(databaseModule, databaseInstances) {
-  moduleDependencies.server = databaseModule.server
+  moduleDependencies.server = databaseModule.databaseServer
   moduleDependencies.utils = databaseModule.databaseUtils
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
