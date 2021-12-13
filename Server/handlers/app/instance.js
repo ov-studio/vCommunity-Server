@@ -33,7 +33,7 @@ function getInstancesBySocket(socket, fetchOnlyUID) {
 
   const cInstances = getInstancesByUID(UID)
   if (!cInstances) return false
-  if (fetchUID) return UID
+  if (fetchOnlyUID) return UID
   return {UID: UID, instances: cInstances}
 }
 
