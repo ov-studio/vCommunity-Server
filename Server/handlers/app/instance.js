@@ -38,7 +38,7 @@ module.exports = {
   getInstancesByUID,
   getInstancesBySocket,
 
-  async injectSocket(socketServer, socket) {
+  injectSocket: async function(socketServer, socket) {
     socket.on("App:onClientConnect", async function(UID) {
       if (!UID) return false
       if (!clientInstances[UID]) clientInstances[UID] = {}

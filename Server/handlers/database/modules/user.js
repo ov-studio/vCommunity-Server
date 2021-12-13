@@ -8,6 +8,13 @@
 ----------------------------------------------------------------*/
 
 
+/*-----------
+-- Imports --
+-----------*/
+
+const utilityHandler = require("../../utility")
+
+
 /*----------
 -- Module --
 ----------*/
@@ -60,7 +67,7 @@ CModule.functions = {
     var queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
     if (fetchData) {
       queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
-      if (queryResult && (!fetchPassword)) delete queryResult.password
+      if (queryResult && !fetchPassword) delete queryResult.password
       return queryResult
     }
     else return (queryResult && (queryResult.rows.length > 0)) || false
@@ -83,9 +90,33 @@ CModule.functions = {
 CModule.dependencies = {
   contacts: {
     suffix: "cntcs",
+    types: ["friends", "pending", "blocked"],
     functions: {
       constructor: function(REF) {
         return moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, "type" TEXT NOT NULL, "group" BIGINT UNIQUE, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+      },
+
+      getContacts: async function(UID, type) {
+        if (!UID || !await CModule.functions.isUserExisting(UID)) return false
+        if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
+
+        if (type) {
+          var queryResult = await databaseHandler.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE type = '${type}'`)
+          return (queryResult && queryResult.rows) || false
+        }
+        var queryResult = await databaseHandler.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("contacts", UID)}`)
+        if (queryResult && (queryResult.rows.length > 0)) {
+          queryResult = utilityHandler.lodash.groupBy(queryResult.rows, function(contactData) {
+            const _type = contactData.type
+            delete contactData.type
+            return _type
+          })
+        }
+        const fetchedContacts = {}
+        CModule.dependencies.contacts.types.forEach(function(contactInstance) {
+          fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
+        })
+        return fetchedContacts
       }
     }
   }
