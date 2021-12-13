@@ -23,12 +23,7 @@ const instanceHandler = require("../instance")
 ------------*/
 
 async function getUserGroups(UID, socket) {
-  if (!UID && socket) {
-    const socketInstance = instanceHandler.getInstancesBySocket(socket)
-    if (!socketInstance) return false
-    UID = socketInstance.UID
-  }
-
+  UID = UID || instanceHandler.getInstancesBySocket(socket, true)
   return databaseHandler.instances.user.dependencies.groups.functions.fetchPersonalGroups(UID)
 }
 

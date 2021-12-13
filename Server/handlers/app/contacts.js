@@ -22,12 +22,7 @@ const instanceHandler = require("./instance")
 ------------*/
 
 async function getUserContacts(UID, socket, ...parameters) {
-  if (!UID && socket) {
-    const socketInstance = instanceHandler.getInstancesBySocket(socket)
-    if (!socketInstance) return false
-    UID = socketInstance.UID
-  }
-
+  UID = UID || instanceHandler.getInstancesBySocket(socket, true)
   return databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, ...parameters)
 }
 
