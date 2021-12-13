@@ -16,7 +16,6 @@ const socketServer = require("../../../servers/socket")
 const eventServer = require("../../../servers/event")
 const databaseHandler = require("../../database/loader")
 const instanceHandler = require("../instance")
-const contactsHandler = require("../contacts")
 
 
 /*------------
