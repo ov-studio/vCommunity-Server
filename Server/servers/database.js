@@ -23,7 +23,7 @@ authServer.initializeApp({
 module.exports = {
   authServer,
   databaseServer,
-  databaseUtility: {
+  databaseUtils: {
     async isTableExisting(tableName) {
       if (!tableName) return false
       const queryResult = await databaseServer.query(`SELECT "tablename" FROM "pg_tables" WHERE "schemaname" = '${databaseCert.database.schema}' AND "tablename" = '${tableName}'`)

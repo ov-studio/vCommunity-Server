@@ -12,7 +12,6 @@
 -- Imports --
 -----------*/
 
-//const {databaseServer, databaseUtility, isTableExisting, prepareQuery, fetchSoloResult} = require("../../../servers/database")
 const databaseServer = require("../../servers/database")
 const databaseInstances = {}
 const databaseModules = [
@@ -30,9 +29,7 @@ databaseModules.forEach(function(dependency) {
 })
 
 module.exports = {
-  server: databaseServer,
-  instances: databaseInstances,
-  isTableExisting: databaseServer.databaseUtility.isTableExisting,
-  prepareQuery: databaseServer.databaseUtility.prepareQuery,
-  fetchSoloResult: databaseServer.databaseUtility.fetchSoloResult
+  server: databaseServer.databaseServer,
+  utilities: databaseServer.databaseUtils,
+  instances: databaseInstances
 }

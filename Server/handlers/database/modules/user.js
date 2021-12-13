@@ -98,7 +98,7 @@ CModule.dependencies = {
 
 exports.injectModule = function(databaseModule, databaseInstances) {
   moduleDependencies.server = databaseModule.databaseServer
-  moduleDependencies.utilities = databaseModule.databaseUtility
+  moduleDependencies.utilities = databaseModule.databaseUtils
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
   moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" TEXT PRIMARY KEY, "email" TEXT UNIQUE NOT NULL, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
