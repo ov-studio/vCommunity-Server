@@ -26,7 +26,7 @@ const CModule = {
 CModule.functions = {
   constructor: async function(payload) {
     if (!payload.UID || !payload.username || !payload.DOB) return false
-    const preparedQuery = moduleDependencies.utilities.prepareQuery(payload)
+    const preparedQuery = moduleDependencies.utils.prepareQuery(payload)
     if (await CModule.functions.isUsernameExisting(payload.username)) return {status: "auth/username-already-exists"}
 
     const queryResult = await moduleDependencies.server.query(`INSERT INTO ${CModule.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
@@ -59,7 +59,7 @@ CModule.functions = {
 
     var queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
     if (fetchData) {
-      queryResult = moduleDependencies.utilities.fetchSoloResult(queryResult)
+      queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
       if (queryResult && (!fetchPassword)) delete queryResult.password
       return queryResult
     }
@@ -70,7 +70,7 @@ CModule.functions = {
     if (!username) return false
 
     const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "username" = '${username}'`)
-    if (fetchData) return moduleDependencies.utilities.fetchSoloResult(queryResult)
+    if (fetchData) return moduleDependencies.utils.fetchSoloResult(queryResult)
     else return (queryResult && (queryResult.rows.length > 0)) || false
   }
 }
@@ -98,7 +98,7 @@ CModule.dependencies = {
 
 exports.injectModule = function(databaseModule, databaseInstances) {
   moduleDependencies.server = databaseModule.databaseServer
-  moduleDependencies.utilities = databaseModule.databaseUtils
+  moduleDependencies.utils = databaseModule.databaseUtils
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
   moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" TEXT PRIMARY KEY, "email" TEXT UNIQUE NOT NULL, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)

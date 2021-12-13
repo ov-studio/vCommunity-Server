@@ -30,6 +30,6 @@ databaseModules.forEach(function(dependency) {
 
 module.exports = {
   server: databaseServer.databaseServer,
-  utilities: databaseServer.databaseUtils,
+  utils: databaseServer.databaseUtils,
   instances: databaseInstances
 }
