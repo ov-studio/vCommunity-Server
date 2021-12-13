@@ -27,7 +27,7 @@ async function getUserGroups(UID, socket) {
   return databaseHandler.instances.user.dependencies.groups.functions.fetchPersonalGroups(UID)
 }
 
-async function syncUserGroups(UID, socket) {
+async function syncUserGroups(UID, socket, syncInstances) {
   if (!UID && !socket) return false
   let fetchedInstances = null
   if (!UID) {
@@ -40,10 +40,10 @@ async function syncUserGroups(UID, socket) {
     fetchedInstances = instanceHandler.getInstancesByUID(UID)
   }
   if (!fetchedInstances) return false
-
-  // TODO: ADD PARAM TO SYNC TO PARTICULAR USER INSTANCE
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
+
+  if (!syncInstances) fetchedInstances = {[(socket.id)]: socket}
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupData.UID)

@@ -17,6 +17,7 @@ module.exports = {
 
   sleep(milliseconds) {
     if (!milliseconds) return false
+
     return new Promise((resolve) => {
       setTimeout(resolve, milliseconds)
     })
@@ -24,6 +25,7 @@ module.exports = {
   
   parseMS(milliseconds) {
     if (!milliseconds) return false
+
     return {
       hours: Math.floor((milliseconds/(1000*60 *60)) % 24),
       minutes: Math.floor((milliseconds/(1000*60)) % 60),
@@ -34,6 +36,7 @@ module.exports = {
 
   castDayTimeStamp(timestamp, days, isReverse) {
     if (!timestamp || !days) return false
+
     timestamp = new Date(timestamp)
     return new Date(timestamp.setDate(timestamp.getDate() + (((isReverse && -1) || 1)*days)))
   }

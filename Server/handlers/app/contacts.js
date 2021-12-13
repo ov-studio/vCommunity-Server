@@ -26,7 +26,7 @@ async function getUserContacts(UID, socket, ...parameters) {
   return databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, ...parameters)
 }
 
-async function syncUserContacts(UID, socket) {
+async function syncUserContacts(UID, socket, syncInstances) {
   if (!UID && !socket) return false
   let fetchedInstances = null
   if (!fetchedInstances) {
@@ -41,10 +41,10 @@ async function syncUserContacts(UID, socket) {
     } 
   }
   if (!fetchedInstances) return false
-
-  // TODO: ADD PARAM TO SYNC TO PARTICULAR USER INSTANCE
   const fetchedContacts = await getUserContacts(UID)
   if (!fetchedContacts) return false
+
+  if (!syncInstances) fetchedInstances = {[(socket.id)]: socket}
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     clientInstance[1].emit("App:Contacts:onSync", fetchedContacts) 
   })
@@ -118,8 +118,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
         return false
       }
     }
-    await syncUserContacts(CInstances.UID)
-    await syncUserContacts(UID)
+    await syncUserContacts(CInstances.UID, null, true)
+    await syncUserContacts(UID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null)
     eventServer.emit("App:Groups:Personal:onSync", UID, null)
     return true
@@ -151,8 +151,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     } else {
       return false
     }
-    await syncUserContacts(CInstances.UID)
-    await syncUserContacts(UID)
+    await syncUserContacts(CInstances.UID, null, true)
+    await syncUserContacts(UID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
     return true
