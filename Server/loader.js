@@ -21,6 +21,6 @@ require("./servers/event")
 -- Handlers --
 ------------*/
 
-require("./handlers/database")
+require("./handlers/database/loader")
 require("./handlers/auth")
 require("./handlers/app/loader")

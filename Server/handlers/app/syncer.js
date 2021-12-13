@@ -13,7 +13,7 @@
 -----------*/
 
 const eventServer = require("../../servers/event")
-const databaseHandler = require("../database")
+const databaseHandler = require("../database/loader")
 const contactsHandler = require("./contacts")
 const personalGroupHandler = require("./groups/personal")
 
@@ -27,7 +27,7 @@ eventServer.on("App:onClientConnect", async function(socket, UID) {
   await personalGroupHandler.syncUserGroups(UID, socket)
 
   socket.on("App:User:Datas:OnSync", async function(UID) {
-    var queryResult = await databaseHandler.instances.users.functions.isUserExisting(UID, true)
+    var queryResult = await databaseHandler.instances.user.functions.isUserExisting(UID, true)
     if (queryResult) socket.emit("App:User:Datas:OnSync", queryResult)
   })
 })

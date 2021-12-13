@@ -14,7 +14,7 @@
 
 const {authServer} = require("../servers/database")
 const socketServer = require("../servers/socket")
-const databaseHandler = require("./database")
+const databaseHandler = require("./database/loader")
 
 
 /*------------
@@ -32,7 +32,7 @@ socketServer.of("/auth").on("connection", (socket) => {
       return this.emit("Auth:onClientLogin", {status: error.code}, isReAuthRequest)
     }
 
-    const queryResult = await databaseHandler.instances.users.functions.isUserExisting(authResult.uid, true)
+    const queryResult = await databaseHandler.instances.user.functions.isUserExisting(authResult.uid, true)
     if (!queryResult) return this.emit("Auth:onClientLogin", {status: "auth/failed"}, isReAuthRequest)
     if (!isReAuthRequest) queryResult.password = authData.password
     this.emit("Auth:onClientLogin", queryResult, isReAuthRequest)
@@ -53,7 +53,7 @@ socketServer.of("/auth").on("connection", (socket) => {
       return this.emit("Auth:onClientRegister", {status: error.code})
     }
 
-    const queryResult = await databaseHandler.instances.users.functions.constructor({
+    const queryResult = await databaseHandler.instances.user.functions.constructor({
       UID: authResult.uid,
       email: authData.email,
       username: authData.username,

@@ -26,7 +26,7 @@ require("./syncer")
 ------------*/
 
 socketServer.of("/app").on("connection", (socket) => {
-  socketDependencies.forEach(function(depenency) {
-    depenency.injectSocket(socketServer, socket)
+  socketDependencies.forEach(function(dependency) {
+    dependency.injectSocket(socketServer, socket)
   })
 })
