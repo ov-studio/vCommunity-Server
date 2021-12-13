@@ -13,8 +13,8 @@
 -----------*/
 
 const eventServer = require("../../servers/event")
-const utilityHandler = require("../utility")
 const databaseHandler = require("../database/loader")
+const utilityHandler = require("../utility")
 const instanceHandler = require("./instance")
 const contactTypes = ["friends", "pending", "blocked"]
 
