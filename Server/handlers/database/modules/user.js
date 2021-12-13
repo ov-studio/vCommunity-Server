@@ -40,7 +40,7 @@ CModule.functions = {
     if (!queryResult) return {status: "auth/failed"}
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
-      await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
+      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
     }
     return {success: true, status: "auth/successful"}
   },
@@ -50,13 +50,13 @@ CModule.functions = {
 
     await moduleDependencies.server.query(`DELETE FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
     for (const dependency in dependencies) {
-      await moduleDependencies.server.query(`DROP TABLE IF EXISTS ${CModule.functions.getDependencyREF(dependencies[dependency][0], UID)}`)
+      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await moduleDependencies.server.query(`DROP TABLE IF EXISTS ${CModule.functions.getDependencyREF(dependencies[dependency][0], UID)}`)
     }
     return true
   },
 
   getDependencyREF: function(dependency, UID) {
-    if (!dependency || !CModule.dependencies[dependency] || !UID) return false
+    if (!dependency || !CModule.dependencies[dependency] || !CModule.dependencies[dependency].functions || !CModule.dependencies[dependency].functions.constructor || !UID) return false
 
     return "\"" + CModule.prefix + "_" + UID + "_" + CModule.dependencies[dependency].suffix + "\""
   },
