@@ -58,16 +58,19 @@ CModule.functions = {
 
   getDependencyREF: function(dependency, UID) {
     if (!dependency || !CModule.dependencies[dependency] || !UID) return false
+
     return "\"" + CModule.prefix + "_" + UID + "_" + CModule.dependencies[dependency].suffix + "\""
   },
 
   getRoomREF: function(UID) {
     if (!UID) return false
+
     return CModule.prefix + "_" + UID
   },
 
   isGroupExisting: async function(UID) {
     if (!UID) return false
+
     const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
     return (queryResult && queryResult.rows.length > 0) || false
   }
@@ -95,6 +98,7 @@ CModule.dependencies = {
 
       fetchMessage: async function(REF, UID) {
         if (!UID) return false
+
         const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${REF} WHERE "UID" = '${UID}'`)
         return moduleDependencies.utils.fetchSoloResult(queryResult)
       },
