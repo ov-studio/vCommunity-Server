@@ -24,24 +24,13 @@ const contactsHandler = require("../contacts")
 ------------*/
 
 async function getUserGroups(UID, socket) {
-  if (!UID && !socket) return false
-  if (!UID) {
+  if (!UID && socket) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
     if (!socketInstance) return false
     UID = socketInstance.UID
   }
-  if (!UID) return false
 
-  const fetchedContacts = await contactsHandler.getUserContacts(UID, null, "friends")
-  if (!fetchedContacts) return false
-  const fetchedGroups = []
-  Object.entries(fetchedContacts).forEach(function(contactData) {
-    fetchedGroups.push({
-      UID: contactData[1].group,
-      participantUID: contactData[1].UID
-    })
-  })
-  return fetchedGroups
+  return databaseHandler.instances.user.dependencies.groups.functions.fetchPersonalGroups(UID)
 }
 
 async function syncUserGroups(UID, socket) {

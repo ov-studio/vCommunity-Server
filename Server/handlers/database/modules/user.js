@@ -97,7 +97,7 @@ CModule.dependencies = {
       },
 
       fetchContacts: async function(UID, type) {
-        if (!UID || !await CModule.functions.isUserExisting(UID)) return false
+        if (!await CModule.functions.isUserExisting(UID)) return false
         if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
 
         if (type) {
@@ -124,7 +124,17 @@ CModule.dependencies = {
   groups: {
     functions: {
       fetchPersonalGroups: async function(UID) {
-        // TODO: ..
+        const queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, "friends")
+        if (!queryResult) return false
+
+        const fetchedGroups = []
+        Object.entries(queryResult).forEach(function(contactData) {
+          fetchedGroups.push({
+            UID: contactData[1].group,
+            participantUID: contactData[1].UID
+          })
+        })
+        return fetchedGroups
       }
     }
   }
