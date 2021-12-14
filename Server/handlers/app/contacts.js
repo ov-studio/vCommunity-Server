@@ -126,8 +126,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       } else if (requestType == "reject") {
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       } else if (requestType == "unfriend") {
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
+        if (!await databaseHandler.instances.user.dependencies.contacts.functions.removeContact(CInstances.UID, UID)) return false
       } else {
         return false
       }
