@@ -68,20 +68,20 @@ module.exports = {
 eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Contacts:onClientFriendRequest", async function(UID, requestType) {
     if (!UID || !requestType) return false
-    const CInstances = instanceHandler.getInstancesBySocket(this)
-    if (!CInstances) return false
+    const clientUID = instanceHandler.getInstancesBySocket(this, true)
+    if (!clientUID) return false
 
     if (requestType == "send") {
       var queryResult = await databaseHandler.instances.user.functions.isUsernameExisting(UID, true)
-      if (!queryResult || (CInstances.UID == queryResult.UID)) return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
+      if (!queryResult || (clientUID == queryResult.UID)) return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
 
       UID = queryResult.UID
-      var queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContact(CInstances.UID, UID)
+      var queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContact(clientUID, UID)
       if (queryResult) {
         if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
         if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/recepient-blocked"})
       }
-      queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContact(UID, CInstances.UID)
+      queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContact(UID, clientUID)
       if (queryResult) {
         if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
         if (queryResult.type == "pending") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/pending"})
@@ -89,7 +89,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       }
 
       var preparedQuery = databaseHandler.utils.prepareQuery({
-        UID: CInstances.UID,
+        UID: clientUID,
         type: "pending"
       })
       await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
@@ -97,39 +97,40 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     }
     else {
       if (requestType == "accept") {
-        if (!await databaseHandler.instances.user.dependencies.contacts.functions.addContact(CInstances.UID, UID)) return false
+        if (!await databaseHandler.instances.user.dependencies.contacts.functions.addContact(clientUID, UID)) return false
       } 
       else if (requestType == "reject") {
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
+        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", clientUID)} WHERE "UID" = '${UID}'`)
       } 
       else if (requestType == "unfriend") {
-        if (!await databaseHandler.instances.user.dependencies.contacts.functions.removeContact(CInstances.UID, UID)) return false
+        if (!await databaseHandler.instances.user.dependencies.contacts.functions.removeContact(clientUID, UID)) return false
       }
       else return false
     }
 
-    await syncUserContacts(CInstances.UID, null, true)
+    await syncUserContacts(clientUID, null, true)
     await syncUserContacts(UID, null, true)
-    eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null, true)
+    eventServer.emit("App:Groups:Personal:onSync", clientUID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
     return true
   })
 
   socket.on("App:Contacts:onClientBlockRequest", async function(UID, requestType) {
     if (!UID || !requestType) return false
-    const CInstances = instanceHandler.getInstancesBySocket(this)
+    const clientUID = instanceHandler.getInstancesBySocket(this, true)
+    if (!clientUID) return false
 
     if (requestType == "block") {
-      if (!await databaseHandler.instances.user.dependencies.contacts.functions.blockContact(CInstances.UID, UID)) return false
+      if (!await databaseHandler.instances.user.dependencies.contacts.functions.blockContact(clientUID, UID)) return false
     }
     else if (requestType == "unblock") {
-      if (!await databaseHandler.instances.user.dependencies.contacts.functions.unblockContact(CInstances.UID, UID)) return false
+      if (!await databaseHandler.instances.user.dependencies.contacts.functions.unblockContact(clientUID, UID)) return false
     }
     else return false
 
-    await syncUserContacts(CInstances.UID, null, true)
+    await syncUserContacts(clientUID, null, true)
     await syncUserContacts(UID, null, true)
-    eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null, true)
+    eventServer.emit("App:Groups:Personal:onSync", clientUID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
     return true
   })
