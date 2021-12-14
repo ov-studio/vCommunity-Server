@@ -143,11 +143,8 @@ CModule.dependencies = {
       },
 
       unblockContact: async function(UID, contactUID) {
-        console.log("test 1")
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
-        console.log("test 2")
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
-        console.log(queryResult)
         if (queryResult.type != "blocked") return false 
 
         await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
