@@ -76,12 +76,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       if (!queryResult || (CInstances.UID == queryResult.UID)) return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
 
       UID = queryResult.UID
-      var queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
+      var queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContact(CInstances.UID, UID)
       if (queryResult) {
         if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
         if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/recepient-blocked"})
       }
-      queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, CInstances.UID)
+      queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContact(UID, CInstances.UID)
       if (queryResult) {
         if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
         if (queryResult.type == "pending") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/pending"})
