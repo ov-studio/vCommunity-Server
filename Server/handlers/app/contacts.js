@@ -138,8 +138,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
 
     await syncUserContacts(CInstances.UID, null, true)
     await syncUserContacts(UID, null, true)
-    eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null)
-    eventServer.emit("App:Groups:Personal:onSync", UID, null)
+    eventServer.emit("App:Groups:Personal:onSync", CInstances.UID, null, true)
+    eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
     return true
   })
 
