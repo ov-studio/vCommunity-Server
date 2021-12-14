@@ -13,6 +13,7 @@
 -----------*/
 
 const utilityHandler = require("../../utility")
+const instanceHandler = require("../../app/instance")
 
 
 /*----------
@@ -73,7 +74,10 @@ CModule.functions = {
     var queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
     if (fetchData) {
       queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
-      if (queryResult && !fetchPassword) delete queryResult.password
+      if (queryResult) {
+        if (!fetchPassword) delete queryResult.password
+        queryResult.isOnline = (instanceHandler.getInstancesByUID(UID) && true) || false
+      }
       return queryResult
     }
     else return (queryResult && (queryResult.rows.length > 0)) || false

@@ -12,6 +12,7 @@
 -- Imports --
 -----------*/
 
+const socketServer = require("../../servers/socket")
 const eventServer = require("../../servers/event")
 const databaseHandler = require("../database/loader")
 const contactsHandler = require("./contacts")
@@ -23,8 +24,13 @@ const personalGroupHandler = require("./groups/personal")
 ----------------------------*/
 
 eventServer.on("App:onClientConnect", async function(socket, UID) {
+  const userRoom = databaseHandler.instances.user.functions.getRoomREF(UID)
+  const clientDatas = await databaseHandler.instances.user.functions.isUserExisting(UID, true)
+  socket.join(userRoom)
+
   await contactsHandler.syncUserContacts(UID, socket)
   await personalGroupHandler.syncUserGroups(UID, socket)
+  socketServer.of("/app").to(userRoom).emit("App:User:Datas:OnSync", clientDatas, true)
 
   socket.on("App:User:Datas:OnSync", async function(UID) {
     var queryResult = await databaseHandler.instances.user.functions.isUserExisting(UID, true)
