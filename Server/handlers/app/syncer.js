@@ -28,7 +28,7 @@ eventServer.on("App:onClientConnect", async function(socket, UID) {
 
   socket.on("App:User:Datas:OnSync", async function(UID) {
     var queryResult = await databaseHandler.instances.user.functions.isUserExisting(UID, true)
-    if (!ueryResult) return false
+    if (!queryResult) return false
 
     socket.emit("App:User:Datas:OnSync", queryResult)
     socket.join(databaseHandler.instances.user.functions.getRoomREF(UID))
