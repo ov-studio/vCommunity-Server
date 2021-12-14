@@ -76,16 +76,16 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       if (!queryResult || (CInstances.UID == queryResult.UID)) return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
 
       UID = queryResult.UID
-      var queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
+      var queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
       if (queryResult) {
-        if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/recepient-blocked"})
         if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
+        if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/recepient-blocked"})
       }
-      queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, CInstances.UID)
+      queryResult = await databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, CInstances.UID)
       if (queryResult) {
+        if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
         if (queryResult.type == "pending") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/pending"})
         if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/sender-blocked"})
-        if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
       }
 
       var preparedQuery = databaseHandler.utils.prepareQuery({
