@@ -76,14 +76,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       if (!queryResult || (CInstances.UID == queryResult.UID)) return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
 
       UID = queryResult.UID
-      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-      queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
+      var queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
       if (queryResult) {
         if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/recepient-blocked"})
         if (queryResult.type == "friends") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/failed"})
       }
-      queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
-      queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
+      queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, CInstances.UID)
       if (queryResult) {
         if (queryResult.type == "pending") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/pending"})
         if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/sender-blocked"})
@@ -99,8 +97,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     }
     else {
       if ((CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
-      var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-      queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
+      var queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
       if (!queryResult) {
         if ((requestType == "unfriend") && (queryResult.type != "friends")) return false
         else if (queryResult.type != "pending") return false
@@ -148,8 +145,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const CInstances = instanceHandler.getInstancesBySocket(this)
     if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
 
-    var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-    queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
+    var queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
     if (requestType == "block") {
       if (queryResult) {
         if (queryResult.type == "blocked") return false 
