@@ -98,7 +98,10 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       if ((CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
       var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
-      if (!queryResult || ((requestType != "unfriend") && (queryResult.type != "pending"))) return false
+      if (!queryResult) {
+        if ((requestType == "unfriend") && (queryResult.type != "friends")) return false
+        else if (queryResult.type != "pending") return false
+      }
 
       if (requestType == "accept") {
         const groupUID = await databaseHandler.instances.personalGroup.functions.constructor({
@@ -123,7 +126,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       } else if (requestType == "reject") {
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       } else if (requestType == "unfriend") {
-        console.log("AYY")
+        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
+        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
       } else {
         return false
       }
