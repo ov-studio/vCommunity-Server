@@ -61,6 +61,12 @@ CModule.functions = {
     return "\"" + CModule.prefix + "_" + UID + "_" + CModule.dependencies[dependency].suffix + "\""
   },
 
+  getRoomREF: function(UID) {
+    if (!UID) return false
+
+    return CModule.prefix + "_" + UID
+  },
+
   isUserExisting: async function(UID, fetchData, fetchPassword) {
     if (!UID) return false
 
