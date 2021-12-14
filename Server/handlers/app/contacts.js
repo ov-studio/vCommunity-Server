@@ -96,8 +96,6 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/successful"})
     }
     else {
-      if ((CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
-
       if (requestType == "accept") {
         if (!await databaseHandler.instances.user.dependencies.contacts.functions.addContact(CInstances.UID, UID)) return false
       } 
@@ -120,7 +118,6 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Contacts:onClientBlockRequest", async function(UID, requestType) {
     if (!UID || !requestType) return false
     const CInstances = instanceHandler.getInstancesBySocket(this)
-    if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
 
     if (requestType == "block") {
       if (!await databaseHandler.instances.user.dependencies.contacts.functions.blockContact(CInstances.UID, UID)) return false
