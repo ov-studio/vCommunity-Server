@@ -96,6 +96,31 @@ CModule.dependencies = {
         return moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, "type" TEXT NOT NULL, "group" BIGINT UNIQUE, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
       },
 
+      blockContact: async function(UID, contactUID) {
+        if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
+        var queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, contactUID)
+        if (queryResult.type == "blocked") return false 
+
+        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
+        var preparedQuery = moduleDependencies.utils.prepareQuery({
+          UID: contactUID,
+          type: "blocked"
+        })
+        await moduleDependencies.server.query(`INSERT INTO ${CModule.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        queryResult = await CModule.dependencies.contacts.functions.fetchContacts(contactUID, UID)
+        if (queryResult && (queryResult.type != "blocked")) await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", contactUID)} WHERE "UID" = '${UID}'`)
+        return true
+      },
+
+      unblockContact: async function(UID, contactUID) {
+        if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
+        var queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, contactUID)
+        if (queryResult.type != "blocked") return false 
+
+        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
+        return true
+      },
+
       fetchContact: async function(UID, contactUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
       

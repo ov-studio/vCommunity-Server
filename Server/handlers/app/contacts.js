@@ -145,28 +145,9 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const CInstances = instanceHandler.getInstancesBySocket(this)
     if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
 
-    var queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
-    if (requestType == "block") {
-      if (queryResult) {
-        if (queryResult.type == "blocked") return false 
-        else await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-      }
-
-      var preparedQuery = databaseHandler.utils.prepareQuery({
-        UID: UID,
-        type: "blocked"
-      })
-      await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-      queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, CInstances.UID)
-      if (queryResult && (queryResult.type != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
-    } 
-    else if (requestType == "unblock") {
-      if (queryResult && (queryResult.type != "blocked")) return false
-      await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-    } 
-    else {
-      return false
-    }
+    if (requestType == "block") if (!await databaseHandler.instances.user.dependencies.contacts.functions.blockContact(CInstances.UID, UID)) return false
+    else if (requestType == "unblock") if (!await databaseHandler.instances.user.dependencies.contacts.functions.unblockContact(CInstances.UID, UID)) return false
+    else return false
 
     await syncUserContacts(CInstances.UID, null, true)
     await syncUserContacts(UID, null, true)
