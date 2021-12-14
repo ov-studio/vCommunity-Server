@@ -52,6 +52,11 @@ async function syncUserContacts(UID, socket, syncInstances) {
 }
 eventServer.on("App:Contacts:onSync", syncUserContacts)
 
+module.exports = {
+  getUserContacts,
+  syncUserContacts
+}
+
 
 /*----------------------------
 -- Event: On Client Connect --
@@ -88,12 +93,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       })
       await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
       this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/successful"})
-    } 
+    }
     else {
       if ((CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
       var queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
       queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
-      if (!queryResult || (queryResult.type != "pending")) return false
+      if (!queryResult || ((requestType != "unfriend") && (queryResult.type != "pending"))) return false
 
       if (requestType == "accept") {
         const groupUID = await databaseHandler.instances.personalGroup.functions.constructor({
@@ -117,6 +122,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
         await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
       } else if (requestType == "reject") {
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
+      } else if (requestType == "unfriend") {
+        console.log("AYY")
       } else {
         return false
       }
@@ -166,8 +173,3 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
 })
-
-module.exports = {
-  getUserContacts,
-  syncUserContacts
-}

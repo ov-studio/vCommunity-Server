@@ -66,6 +66,11 @@ async function syncUserGroups(UID, socket, syncInstances) {
 }
 eventServer.on("App:Groups:Personal:onSync", syncUserGroups)
 
+module.exports = {
+  getUserGroups,
+  syncUserGroups
+}
+
 
 /*----------------------------
 -- Event: On Client Connect --
@@ -105,8 +110,3 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
 })
-
-module.exports = {
-  getUserGroups,
-  syncUserGroups
-}
