@@ -145,8 +145,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const CInstances = instanceHandler.getInstancesBySocket(this)
     if (!CInstances || (CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
 
-    if (requestType == "block") if (!await databaseHandler.instances.user.dependencies.contacts.functions.blockContact(CInstances.UID, UID)) return false
-    else if (requestType == "unblock") if (!await databaseHandler.instances.user.dependencies.contacts.functions.unblockContact(CInstances.UID, UID)) return false
+    if (requestType == "block") {
+      if (!await databaseHandler.instances.user.dependencies.contacts.functions.blockContact(CInstances.UID, UID)) return false
+    }
+    else if (requestType == "unblock") {
+      if (!await databaseHandler.instances.user.dependencies.contacts.functions.unblockContact(CInstances.UID, UID)) return false
+    }
     else return false
 
     await syncUserContacts(CInstances.UID, null, true)
