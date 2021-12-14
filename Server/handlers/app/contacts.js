@@ -97,39 +97,17 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     }
     else {
       if ((CInstances.UID == UID) || !await databaseHandler.instances.user.functions.isUserExisting(CInstances.UID) || !await databaseHandler.instances.user.functions.isUserExisting(UID)) return false
-      var queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(CInstances.UID, UID)
-      if (!queryResult) {
-        if ((requestType == "unfriend") && (queryResult.type != "friends")) return false
-        else if (queryResult.type != "pending") return false
-      }
 
       if (requestType == "accept") {
-        const groupUID = await databaseHandler.instances.personalGroup.functions.constructor({
-          senderUID: UID,
-          receiverUID: CInstances.UID
-        })
-        if (!groupUID) return false
+        if (!await databaseHandler.instances.user.dependencies.contacts.functions.addContact(CInstances.UID, UID)) return false
+      } 
+      else if (requestType == "reject") {
         await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-        var preparedQuery = databaseHandler.utils.prepareQuery({
-          UID: UID,
-          type: "friends",
-          group: groupUID
-        })
-        await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
-        preparedQuery = databaseHandler.utils.prepareQuery({
-          UID: CInstances.UID,
-          type: "friends",
-          group: groupUID
-        })
-        await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-      } else if (requestType == "reject") {
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)} WHERE "UID" = '${UID}'`)
-      } else if (requestType == "unfriend") {
+      } 
+      else if (requestType == "unfriend") {
         if (!await databaseHandler.instances.user.dependencies.contacts.functions.removeContact(CInstances.UID, UID)) return false
-      } else {
-        return false
       }
+      else return false
     }
 
     await syncUserContacts(CInstances.UID, null, true)

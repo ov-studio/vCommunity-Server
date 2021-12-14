@@ -129,19 +129,27 @@ CModule.dependencies = {
       addContact: async function(UID, contactUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
-        if (queryResult.type == "friends") return false 
+        if (queryResult.type != "pending") return false 
+        const groupUID = await moduleDependencies.instances.personalGroup.functions.constructor({
+          senderUID: contactUID,
+          receiverUID: UID
+        })
+        if (!groupUID) return false
 
-        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
         var preparedQuery = moduleDependencies.utils.prepareQuery({
           UID: contactUID,
-          type: "friends"
+          type: "friends",
+          group: groupUID
         })
+        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
         await moduleDependencies.server.query(`INSERT INTO ${CModule.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", contactUID)} WHERE "UID" = '${UID}'`)
+
         var preparedQuery = moduleDependencies.utils.prepareQuery({
-            UID: UID,
-            type: "friends"
-          })
+          UID: UID,
+          type: "friends",
+          group: groupUID
+        })
+        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", contactUID)} WHERE "UID" = '${UID}'`)
         await moduleDependencies.server.query(`INSERT INTO ${CModule.functions.getDependencyREF("contacts", contactUID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         return true
       },
@@ -161,11 +169,11 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type == "blocked") return false 
 
-        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
         var preparedQuery = moduleDependencies.utils.prepareQuery({
           UID: contactUID,
           type: "blocked"
         })
+        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${contactUID}'`)
         await moduleDependencies.server.query(`INSERT INTO ${CModule.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
         if (queryResult && (queryResult.type != "blocked")) await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("contacts", contactUID)} WHERE "UID" = '${UID}'`)
