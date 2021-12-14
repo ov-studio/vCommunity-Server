@@ -157,8 +157,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
         type: "blocked"
       })
       await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", CInstances.UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-      queryResult = await databaseHandler.server.query(`SELECT * FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
-      queryResult = databaseHandler.utils.fetchSoloResult(queryResult)
+      queryResult = databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, CInstances.UID)
       if (queryResult && (queryResult.type != "blocked")) await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)} WHERE "UID" = '${CInstances.UID}'`)
     } 
     else if (requestType == "unblock") {
