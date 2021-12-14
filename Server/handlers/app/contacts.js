@@ -44,7 +44,10 @@ async function syncUserContacts(UID, socket, syncInstances) {
   const fetchedContacts = await getUserContacts(UID)
   if (!fetchedContacts) return false
 
-  if (!syncInstances) fetchedInstances = {[(socket.id)]: socket}
+  if (!syncInstances) {
+    if (!socket) return false
+    else fetchedInstances = {[(socket.id)]: socket}
+  }
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     clientInstance[1].emit("App:Contacts:onSync", fetchedContacts) 
   })
