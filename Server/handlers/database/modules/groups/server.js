@@ -31,12 +31,11 @@ CModule.functions = {
     queryResult = await moduleDependencies.server.query(`INSERT INTO ${CModule.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
     queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
     if (!queryResult) return false
-    payload.UID = queryResult.UID
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
+      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], queryResult.UID))
     }
-    return payload.UID
+    return queryResult.UID
   },
 
   destructor: async function(UID) {
