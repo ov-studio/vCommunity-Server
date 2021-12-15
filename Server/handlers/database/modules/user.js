@@ -226,7 +226,7 @@ CModule.dependencies = {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
         const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("servers", UID)}`)
-        return (queryResult && (queryResult.rows.length > 0)) || false
+        return (queryResult && queryResult.rows) || false
       },
 
       isUserMember: async function(UID, serverUID) {

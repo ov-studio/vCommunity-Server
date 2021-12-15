@@ -47,8 +47,6 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
-  console.log("FETCHED SERVERS")
-  console.log(fetchedGroups)
   // TODO: ..
   /*
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
