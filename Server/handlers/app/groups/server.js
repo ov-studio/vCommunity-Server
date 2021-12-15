@@ -47,15 +47,13 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
-  // TODO: ..
-  /*
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)
       clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
       clientInstance[1].join(groupRoom)
     })
-  })
+  })/*
   fetchedGroups.forEach(async function(groupData) {
     const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", groupData.UID))
     if (groupMessages) {

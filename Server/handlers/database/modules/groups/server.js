@@ -25,7 +25,7 @@ const CModule = {
 
 CModule.functions = {
   constructor: async function(payload) {
-    if (!payload.name) return false
+    if (!payload.name || !payload.owner) return false
 
     const preparedQuery = moduleDependencies.utils.prepareQuery(payload)
     queryResult = await moduleDependencies.server.query(`INSERT INTO ${CModule.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
@@ -86,5 +86,5 @@ exports.injectModule = function(databaseModule, databaseInstances) {
   moduleDependencies.utils = databaseModule.databaseUtils
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
-  moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" BIGSERIAL PRIMARY KEY, "name" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+  moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" BIGSERIAL PRIMARY KEY, "name" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 }
