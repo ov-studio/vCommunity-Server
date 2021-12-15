@@ -226,7 +226,31 @@ CModule.dependencies = {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
         const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("servers", UID)}`)
-        return (queryResult && queryResult.rows) || false
+        return (queryResult && (queryResult.rows.length > 0)) || false
+      },
+
+      isUserServerMember: async function(UID, serverUID) {
+        if (!await CModule.functions.isUserExisting(UID)) return false
+
+        const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("servers", UID)} WHERE "server" = '${serverUID}'`)
+        return (queryResult && (queryResult.rows.length > 0) && true) || false
+      },
+
+      joinServer: async function(UID, serverUID) {
+        if (await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
+
+        const preparedQuery = moduleDependencies.utils.prepareQuery({
+          server: serverUID
+        })
+        await moduleDependencies.server.query(`INSERT INTO ${CModule.functions.getDependencyREF("servers", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
+        return true
+      },
+
+      leaveServer: async function(UID, serverUID) {
+        if (!await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
+
+        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("servers", UID)} WHERE "server" = '${serverUID}'`)
+        return true
       }
     }
   }
