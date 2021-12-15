@@ -28,13 +28,10 @@ const serverGroupHandler = require("./groups/server")
 eventServer.on("App:onClientConnect", async function(socket, UID) {
   const userRoom = databaseHandler.instances.user.functions.getRoomREF(UID)
   socket.join(userRoom)
-
   socket.on("App:User:Datas:OnSync", async function(UID) {
-    console.log("SYNC " + UID)
     var queryResult = await databaseHandler.instances.user.functions.isUserExisting(UID, true)
     if (!queryResult) return false
 
-    console.log("SYNCING...")
     socket.emit("App:User:Datas:OnSync", queryResult)
     socket.join(databaseHandler.instances.user.functions.getRoomREF(UID))
   })
