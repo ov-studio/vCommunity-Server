@@ -37,7 +37,7 @@ CModule.functions = {
     const preparedQuery = moduleDependencies.utils.prepareQuery(payload)
     queryResult = await moduleDependencies.server.query(`INSERT INTO ${CModule.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
     queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
-    if (!queryResult) return queryResult.UID
+    if (!queryResult) return false
     payload.UID = queryResult.UID
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
