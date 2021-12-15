@@ -15,6 +15,7 @@
 const socketServer = require("../../servers/socket")
 const eventServer = require("../../servers/event")
 const databaseHandler = require("../database/loader")
+const instanceHandler = require("./instance")
 const contactsHandler = require("./contacts")
 const personalGroupHandler = require("./groups/personal")
 
@@ -39,4 +40,14 @@ eventServer.on("App:onClientConnect", async function(socket, UID) {
     socket.emit("App:User:Datas:OnSync", queryResult)
     socket.join(databaseHandler.instances.user.functions.getRoomREF(UID))
   })
+})
+
+eventServer.on("App:onClientDisconnect", async function(UID) {
+  const userRoom = databaseHandler.instances.user.functions.getRoomREF(UID)
+  const clientDatas = await databaseHandler.instances.user.functions.isUserExisting(UID, true)
+  const fetchedInstances = instanceHandler.getInstancesByUID(UID)
+  
+  if (!fetchedInstances) {
+    socketServer.of("/app").to(userRoom).emit("App:User:Datas:OnSync", clientDatas, true)
+  }
 })

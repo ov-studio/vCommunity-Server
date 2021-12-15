@@ -57,7 +57,8 @@ module.exports = {
       if (!UID || !clientInstances[UID]) return false
       delete clientInstances[UID][socketID]
       delete socketInstances[socketID]
-      if (Object.entries(clientInstances[UID]).length <= 0) delete clientInstances[UID]
+      if (Object.keys(clientInstances[UID]).length <= 0) delete clientInstances[UID]
+      eventServer.emit("App:onClientDisconnect", UID)
     })
   }
 }
