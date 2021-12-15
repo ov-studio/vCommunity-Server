@@ -18,6 +18,7 @@ const databaseHandler = require("../database/loader")
 const instanceHandler = require("./instance")
 const contactsHandler = require("./contacts")
 const personalGroupHandler = require("./groups/personal")
+const serverGroupHandler = require("./groups/server")
 
 
 /*----------------------------
@@ -31,6 +32,7 @@ eventServer.on("App:onClientConnect", async function(socket, UID) {
 
   await contactsHandler.syncUserContacts(UID, socket)
   await personalGroupHandler.syncUserGroups(UID, socket)
+  await serverGroupHandler.syncUserGroups(UID, socket)
   socketServer.of("/app").to(userRoom).emit("App:User:Datas:OnSync", clientDatas, true)
 
   socket.on("App:User:Datas:OnSync", async function(UID) {

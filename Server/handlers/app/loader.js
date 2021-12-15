@@ -18,6 +18,7 @@ const socketDependencies = [
 ]
 require("./contacts")
 require("./groups/personal")
+require("./groups/server")
 require("./syncer")
 
 
