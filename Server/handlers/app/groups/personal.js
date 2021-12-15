@@ -24,7 +24,7 @@ const instanceHandler = require("../instance")
 
 async function getUserGroups(UID, socket) {
   UID = UID || instanceHandler.getInstancesBySocket(socket, true)
-  return databaseHandler.instances.user.dependencies.groups.functions.fetchPersonalGroups(UID)
+  return databaseHandler.instances.user.dependencies.contacts.functions.fetchPersonalGroups(UID)
 }
 
 async function syncUserGroups(UID, socket, syncInstances) {

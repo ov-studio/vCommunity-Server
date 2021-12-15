@@ -136,6 +136,20 @@ CModule.dependencies = {
         return fetchedContacts
       },
 
+      fetchPersonalGroups: async function(UID) {
+        const queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, "friends")
+        if (!queryResult) return false
+
+        const fetchedGroups = []
+        Object.entries(queryResult).forEach(function(contactData) {
+          fetchedGroups.push({
+            UID: contactData[1].group,
+            participantUID: contactData[1].UID
+          })
+        })
+        return fetchedGroups
+      },
+
       addContact: async function(UID, contactUID) {
         if ((UID == contactUID) || !await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
@@ -201,20 +215,18 @@ CModule.dependencies = {
     }
   },
 
-  groups: {
+  servers: {
+    suffix: "srvrs",
     functions: {
-      fetchPersonalGroups: async function(UID) {
-        const queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, "friends")
-        if (!queryResult) return false
+      constructor: function(REF) {
+        return moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${REF}("server" BIGINT UNIQUE, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+      },
 
-        const fetchedGroups = []
-        Object.entries(queryResult).forEach(function(contactData) {
-          fetchedGroups.push({
-            UID: contactData[1].group,
-            participantUID: contactData[1].UID
-          })
-        })
-        return fetchedGroups
+      fetchServerGroups: async function(UID) {
+        if (!await CModule.functions.isUserExisting(UID)) return false
+
+        const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("servers", UID)}`)
+        return (queryResult && queryResult.rows) || false
       }
     }
   }
