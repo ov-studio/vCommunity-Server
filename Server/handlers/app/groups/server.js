@@ -95,7 +95,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     })
     if (!groupUID) return false
     await databaseHandler.instances.user.dependencies.servers.functions.joinServer(client_instance.UID, groupUID)
-    eventServer.emit("App:Groups:Server:onSync")
+    eventServer.emit("App:Groups:Server:onSync", UID, null, true)
     return true
   })
   /*
