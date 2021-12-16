@@ -85,6 +85,24 @@ module.exports = {
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
   // TODO: ..
+  socket.on("App:Group:Server:onClientCreateGroup", async function(requestData) {
+    console.log("SERVER CREATION REQUEST")
+    console.log(requestData)
+    if (!requestData || !requestData.name) return false
+    const client_instance = instanceHandler.getInstancesBySocket(this)
+    if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID)) return false
+
+    /*
+    const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID)
+    if (!groupMessages) return false
+    this.emit("App:Groups:Personal:onSyncMessages", {
+      UID: requestData.UID,
+      messages: groupMessages,
+      isPostLoad: true
+    })
+    */
+    return true
+  })
   /*
   socket.on("App:Group:Personal:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
