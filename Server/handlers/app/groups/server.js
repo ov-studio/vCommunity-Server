@@ -27,6 +27,7 @@ async function getUserGroups(UID, socket) {
   return databaseHandler.instances.user.dependencies.servers.functions.fetchServerGroups(UID)
 }
 
+// TODO: ALLOW UNFORCED SYNC (DELETE GROUP WHICH ISN'T NEEDED ANYMORE INSTEAD OF FORCE RESETTING EVERYTHING)
 async function syncUserGroups(UID, socket, syncInstances) {
   if (!UID && !socket) return false
   let fetchedInstances = null
@@ -47,9 +48,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
-  //TODO: ..
-  console.log("FETCHED SERVERS: ")
-  console.log(fetchedGroups)
+
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)
@@ -86,21 +85,17 @@ module.exports = {
 eventServer.on("App:onClientConnect", function(socket, UID) {
   // TODO: ..
   socket.on("App:Group:Server:onClientCreateGroup", async function(requestData) {
-    console.log("SERVER CREATION REQUEST")
-    console.log(requestData)
-    if (!requestData || !requestData.name) return false
+    if (!requestData) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
     if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID)) return false
 
-    /*
-    const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID)
-    if (!groupMessages) return false
-    this.emit("App:Groups:Personal:onSyncMessages", {
-      UID: requestData.UID,
-      messages: groupMessages,
-      isPostLoad: true
+    const groupUID = await databaseHandler.instances.serverGroup.functions.constructor({
+      name: requestData.name,
+      owner: client_instance.UID
     })
-    */
+    if (!groupUID) return false
+    await databaseHandler.instances.user.dependencies.servers.functions.joinServer(client_instance.UID, groupUID)
+    eventServer.emit("App:Groups:Server:onSync")
     return true
   })
   /*

@@ -229,7 +229,7 @@ CModule.dependencies = {
         return (queryResult && queryResult.rows) || false
       },
 
-      isUserMember: async function(UID, serverUID) {
+      isUserServerMember: async function(UID, serverUID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
         const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("servers", UID)} WHERE "server" = '${serverUID}'`)
@@ -237,7 +237,7 @@ CModule.dependencies = {
       },
 
       joinServer: async function(UID, serverUID) {
-        if (await CModule.dependencies.servers.functions.isUserMember(UID, serverUID)) return false
+        if (await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
 
         const preparedQuery = moduleDependencies.utils.prepareQuery({
           server: serverUID
@@ -247,7 +247,7 @@ CModule.dependencies = {
       },
 
       leaveServer: async function(UID, serverUID) {
-        if (!await CModule.dependencies.servers.functions.isUserMember(UID, serverUID)) return false
+        if (!await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
 
         await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("servers", UID)} WHERE "server" = '${serverUID}'`)
         return true
