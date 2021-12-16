@@ -226,7 +226,14 @@ CModule.dependencies = {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
         const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.functions.getDependencyREF("servers", UID)}`)
-        return (queryResult && queryResult.rows) || false
+        if (!queryResult) return false
+        const fetchedGroups = []
+        Object.entries(queryResult).forEach(function(groupData) {
+          fetchedGroups.push({
+            UID: groupData[1].server
+          })
+        })
+        return fetchedGroup
       },
 
       isUserServerMember: async function(UID, serverUID) {
