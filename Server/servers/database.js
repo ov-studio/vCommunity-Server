@@ -20,9 +20,9 @@ authServer.initializeApp({
   credential: authServer.credential.cert(databaseCert.auth)
 })
 
-databaseDriver.createREF = function(defName, defData, defOptions) {
+databaseDriver.createREF = function(defName, skipSync, defData, defOptions) {
   const createdREF = databaseServer.define(defName, defData, defOptions)
-  createdREF.sync()
+  if (!skipSync) createdREF.sync()
   return createdREF
 }
 databaseDriver.fetchSoloResult = function(queryResult) {
