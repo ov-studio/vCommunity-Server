@@ -87,12 +87,11 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
         if (queryResult.type == "pending") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/pending"})
         if (queryResult.type == "blocked") return this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/sender-blocked"})
       }
-
-      var preparedQuery = databaseHandler.utils.prepareQuery({
+      const REF = await databaseHandler.instances.user.dependencies.contacts.functions.constructor(databaseHandler.instances.user.functions.getInstanceSchema(UID), true)
+      await REF.create({
         UID: clientUID,
         type: "pending"
       })
-      await databaseHandler.server.query(`INSERT INTO ${databaseHandler.instances.user.functions.getDependencyREF("contacts", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
       this.emit("App:Contacts:onClientFriendRequest", {status: "invitation/successful"})
     }
     else {
@@ -100,7 +99,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
         if (!await databaseHandler.instances.user.dependencies.contacts.functions.addContact(clientUID, UID)) return false
       } 
       else if (requestType == "reject") {
-        await databaseHandler.server.query(`DELETE FROM ${databaseHandler.instances.user.functions.getDependencyREF("contacts", clientUID)} WHERE "UID" = '${UID}'`)
+        const REF = await databaseHandler.instances.user.dependencies.contacts.functions.constructor(databaseHandler.instances.user.functions.getInstanceSchema(clientUID), true)
+        await REF.destroy({
+          where: {
+            UID: UID
+          }
+        })
       } 
       else if (requestType == "unfriend") {
         if (!await databaseHandler.instances.user.dependencies.contacts.functions.removeContact(clientUID, UID)) return false
