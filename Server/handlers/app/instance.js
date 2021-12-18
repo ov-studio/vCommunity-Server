@@ -45,6 +45,7 @@ module.exports = {
     socket.on("App:onClientConnect", async function(UID) {
       if (!UID) return false
       if (!clientInstances[UID]) clientInstances[UID] = {}
+
       const socketID = this.id
       clientInstances[UID][socketID] = this
       socketInstances[socketID] = UID
@@ -55,6 +56,7 @@ module.exports = {
       const socketID = this.id
       const UID = socketInstances[socketID]
       if (!UID || !clientInstances[UID]) return false
+
       delete clientInstances[UID][socketID]
       delete socketInstances[socketID]
       if (Object.keys(clientInstances[UID]).length <= 0) delete clientInstances[UID]
