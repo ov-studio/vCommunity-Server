@@ -21,12 +21,12 @@ authServer.initializeApp({
 })
 
 databaseDriver.createREF = function(defName, skipSync, defData, defOptions) {
-  const createdREF = databaseServer.define(defName, defData, defOptions)
-  if (!skipSync) createdREF.sync()
-  return createdREF
+  const createdREF = databaseServer.define(defName, defData, defOptions || {})
+  if (!skipSync) return createdREF.sync()
+  else return createdREF
 }
-databaseDriver.destroyREF = function(refInstance) {
-  return refInstance.drop()
+databaseDriver.destroyREF = function(refInstance, dropOptions) {
+  return refInstance.drop(dropOptions || {})
 }
 databaseDriver.fetchSoloResult = function(queryResult) {
   return (queryResult && (queryResult.length > 0) && queryResult[0]) || false

@@ -136,7 +136,7 @@ CModule.dependencies = {
             type: moduleDependencies.driver.BIGINT,
             unique: true
           }
-        }, {})
+        })
       },
 
       fetchContact: async function(UID, contactUID) {
@@ -395,5 +395,5 @@ exports.injectModule = function(databaseModule, databaseInstances) {
       type: moduleDependencies.driver.DATE,
       allowNull: false
     },
-  }, {})
+  })
 }
