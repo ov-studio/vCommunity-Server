@@ -22,7 +22,7 @@ const instanceHandler = require("../../app/instance")
 
 const moduleName = "user", moduleDependencies = {}
 const CModule = {
-  REF: "APP_USERS2",
+  REF: "APP_USERS",
   prefix: "usr"
 }
 
@@ -73,11 +73,15 @@ CModule.functions = {
   isUserExisting: async function(UID, fetchData, fetchPassword) {
     if (!UID) return false
 
-    var queryResult = await CModule.REF.findAll({
-      where: {
-        UID: UID
-      }
-    })
+    try {
+        var queryResult = await CModule.REF.findAll({
+            where: {
+              UID: UID
+            }
+          })
+    } catch(error) {
+        console.log(error)
+    }
     queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
     if (fetchData) {
       if (queryResult) {

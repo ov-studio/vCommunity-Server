@@ -16,6 +16,7 @@ const authServer = require("firebase-admin")
 const databaseCert = (process.env["cert_database"] && JSON.parse(process.env["cert_database"])) || require("../../.cert-database.json")
 const databaseDriver = require("sequelize")
 const databaseServer = new databaseDriver(databaseCert.database)
+databaseServer.sync()
 authServer.initializeApp({
   credential: authServer.credential.cert(databaseCert.auth)
 })
@@ -76,6 +77,7 @@ var Posts = databaseServer.define('posSts', {
   //moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" TEXT PRIMARY KEY, "email" TEXT UNIQUE NOT NULL, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
   //(await CModule.REF.create(payload)).get({raw:true})
 
+  /*
   Posts.sync({force: true}).then(async function () {
       var lol = await Posts.create({
         UID: 33,
@@ -84,4 +86,5 @@ var Posts = databaseServer.define('posSts', {
       });
       console.log(lol)
   });
+  */
   
