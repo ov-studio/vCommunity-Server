@@ -14,7 +14,7 @@
 
 const moduleName = "serverGroup", moduleDependencies = {}
 const CModule = {
-  REF: "\"APP_SERVER_GROUPS\"",
+  REF: "server_groups",
   prefix: "srvrgrp"
 }
 

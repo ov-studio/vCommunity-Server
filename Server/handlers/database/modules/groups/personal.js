@@ -14,7 +14,7 @@
 
 const moduleName = "personalGroup", moduleDependencies = {}
 const CModule = {
-  REF: "APP_PERSONAL_GROUPS",
+  REF: "personal_groups",
   prefix: "prsnlgrp"
 }
 

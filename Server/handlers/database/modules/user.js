@@ -22,7 +22,7 @@ const instanceHandler = require("../../app/instance")
 
 const moduleName = "user", moduleDependencies = {}
 const CModule = {
-  REF: "APP_USERS",
+  REF: "users",
   prefix: "usr"
 }
 

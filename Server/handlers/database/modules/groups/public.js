@@ -14,7 +14,7 @@
 
 const moduleName = "publicGroup", moduleDependencies = {}
 const CModule = {
-  REF: "\"APP_PUBLIC_GROUPS\"",
+  REF: "public_groups",
   prefix: "pblcgrp"
 }
 
