@@ -53,6 +53,7 @@ var Posts = databaseServer.define('posSts', {
     }
   }, {});
 
+  /*
   var Posts = databaseServer.define('posSts', {
     UID: {
         type: databaseDriver.BIGINT,
@@ -70,30 +71,15 @@ var Posts = databaseServer.define('posSts', {
       type: databaseDriver.STRING
     }
   }, {});
+  */
 
   //moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" TEXT PRIMARY KEY, "email" TEXT UNIQUE NOT NULL, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
 
   Posts.sync({force: true}).then(async function () {
-    try {
-
-
-      let data = await Posts.findAll({
-      where: {
-        name: {
-          [Op.like]: '%Bob%'
-        }
-      }
-    });
-      /*
       var lol = await Posts.create({
         UID: 33,
         title: 'Getting Started with PostgreSQL and Sequelize',
         content: 'Hello there'
       });
-      */
       console.log(lol)
-    }
-    catch(error) {
-      console.log(error)
-    }
   });

@@ -75,7 +75,7 @@ CModule.functions = {
 
     var queryResult = await CModule.REF.findAll({
       where: {
-        UID = UID
+        UID: UID
       }
     })
     queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
@@ -94,7 +94,7 @@ CModule.functions = {
 
     var queryResult = await CModule.REF.findAll({
       where: {
-        username = username
+        username: username
       }
     })
     queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
