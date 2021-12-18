@@ -57,7 +57,7 @@ socketServer.of("/auth").on("connection", (socket) => {
       UID: authResult.uid,
       email: authData.email,
       username: authData.username,
-      DOB: JSON.stringify(authData.DOB)
+      DOB: authData.DOB
     })
     if (!queryResult.success) authServer.auth().deleteUser(authResult.uid)
     this.emit("Auth:onClientRegister", queryResult)
