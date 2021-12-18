@@ -16,8 +16,8 @@ const databaseServer = require("../../servers/database")
 const databaseInstances = {}
 const databaseModules = [
   require("./modules/user"),
-  require("./modules/groups/personal"),
-  require("./modules/groups/server")
+  //require("./modules/groups/personal"),
+  //require("./modules/groups/server")
 ]
 
 
@@ -30,7 +30,7 @@ databaseModules.forEach(function(dependency) {
 })
 
 module.exports = {
+  driver: databaseServer.databaseDriver,
   server: databaseServer.databaseServer,
-  utils: databaseServer.databaseUtils,
   instances: databaseInstances
 }

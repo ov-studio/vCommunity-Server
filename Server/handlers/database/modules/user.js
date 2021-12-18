@@ -22,7 +22,7 @@ const instanceHandler = require("../../app/instance")
 
 const moduleName = "user", moduleDependencies = {}
 const CModule = {
-  REF: "\"APP_USERS\"",
+  REF: "APP_USERS2",
   prefix: "usr"
 }
 
@@ -34,11 +34,13 @@ const CModule = {
 CModule.functions = {
   constructor: async function(payload) {
     if (!payload.UID || !payload.username || !payload.DOB) return false
-    const preparedQuery = moduleDependencies.utils.prepareQuery(payload)
     if (await CModule.functions.isUsernameExisting(payload.username)) return {status: "auth/username-already-exists"}
 
-    const queryResult = await moduleDependencies.server.query(`INSERT INTO ${CModule.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
-    if (!queryResult) return {status: "auth/failed"}
+    try {
+      (await CModule.REF.create(payload)).get({raw:true})
+    } catch(error) {
+      return {status: "auth/failed"}
+    }
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
       if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
@@ -71,24 +73,33 @@ CModule.functions = {
   isUserExisting: async function(UID, fetchData, fetchPassword) {
     if (!UID) return false
 
-    var queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
+    var queryResult = await CModule.REF.findAll({
+      where: {
+        UID = UID
+      }
+    })
+    queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
     if (fetchData) {
-      queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
       if (queryResult) {
         if (!fetchPassword) delete queryResult.password
         queryResult.isOnline = (instanceHandler.getInstancesByUID(UID) && true) || false
       }
       return queryResult
     }
-    else return (queryResult && (queryResult.rows.length > 0)) || false
+    else return (queryResult && true) || false
   },
 
   isUsernameExisting: async function(username, fetchData) {
     if (!username) return false
 
-    const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "username" = '${username}'`)
-    if (fetchData) return moduleDependencies.utils.fetchSoloResult(queryResult)
-    else return (queryResult && (queryResult.rows.length > 0)) || false
+    var queryResult = await CModule.REF.findAll({
+      where: {
+        username = username
+      }
+    })
+    queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+    if (fetchData) return queryResult
+    else return (queryResult && true) || false
   }
 }
 
@@ -269,9 +280,32 @@ CModule.dependencies = {
 ---------------------*/
 
 exports.injectModule = function(databaseModule, databaseInstances) {
+  moduleDependencies.driver = databaseModule.databaseDriver
   moduleDependencies.server = databaseModule.databaseServer
-  moduleDependencies.utils = databaseModule.databaseUtils
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
-  moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" TEXT PRIMARY KEY, "email" TEXT UNIQUE NOT NULL, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+
+  CModule.REF = moduleDependencies.server.define(CModule.REF, {
+    "UID": {
+      type: moduleDependencies.driver.TEXT,
+      primaryKey: true
+    },
+    "email": {
+      type: moduleDependencies.driver.TEXT,
+      unique: true,
+      allowNull: false,
+      validate: {
+        isEmail: true
+      }
+    },
+    "username": {
+      type: moduleDependencies.driver.TEXT,
+      unique: true,
+      allowNull: false
+    },
+    "DOB": {
+      type: moduleDependencies.driver.DATE,
+      allowNull: false
+    },
+  }, {})
 }
