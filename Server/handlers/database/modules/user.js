@@ -205,7 +205,6 @@ CModule.dependencies = {
 
         await CModule.isModuleLoaded
         var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        console.log(REF)
         await REF.destroy({
           where: {
             UID: contactUID
