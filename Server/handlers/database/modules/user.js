@@ -312,17 +312,20 @@ CModule.dependencies = {
       joinServer: async function(UID, serverUID) {
         if (await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
 
-        const preparedQuery = moduleDependencies.utils.prepareQuery({
-          server: serverUID
+        await moduleDependencies.driver.query('INSERT INTO ? server = ?', {
+          replacements: [CModule.functions.getDependencyREF("servers", UID), serverUID],
+          type: moduleDependencies.driver.QueryTypes.INSERT
         })
-        await moduleDependencies.server.query(`INSERT INTO ${CModule.functions.getDependencyREF("servers", UID)}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs})`, preparedQuery.values)
         return true
       },
 
       leaveServer: async function(UID, serverUID) {
         if (!await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
 
-        await moduleDependencies.server.query(`DELETE FROM ${CModule.functions.getDependencyREF("servers", UID)} WHERE "server" = '${serverUID}'`)
+        await moduleDependencies.driver.query('DELETE FROM ? server = ?', {
+          replacements: [CModule.functions.getDependencyREF("servers", UID), serverUID],
+          type: moduleDependencies.driver.QueryTypes.DELETE
+        })
         return true
       }
     }
