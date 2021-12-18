@@ -31,7 +31,6 @@ socketServer.of("/auth").on("connection", (socket) => {
     } catch(error) {
       return this.emit("Auth:onClientLogin", {status: error.code}, isReAuthRequest)
     }
-
     const queryResult = await databaseHandler.instances.user.functions.isUserExisting(authResult.uid, true)
     if (!queryResult) return this.emit("Auth:onClientLogin", {status: "auth/failed"}, isReAuthRequest)
     if (!isReAuthRequest) queryResult.password = authData.password
