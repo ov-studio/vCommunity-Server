@@ -55,7 +55,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
     })
   })
   fetchedGroups.forEach(async function(groupData) {
-    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.personalGroup.functions.getDependencyREF("messages", groupData.UID))
+    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(groupData.UID)
     if (groupMessages) {
       Object.entries(fetchedInstances).forEach(function(clientInstance) {
         clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
@@ -85,7 +85,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const client_instance = instanceHandler.getInstancesBySocket(this)
     if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.personalGroup.functions.isGroupExisting(requestData.UID)) return false
 
-    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.personalGroup.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID)
+    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(requestData.UID, requestData.messageUID)
     if (!groupMessages) return false
     this.emit("App:Groups:Personal:onSyncMessages", {
       UID: requestData.UID,
@@ -100,7 +100,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const client_instance = instanceHandler.getInstancesBySocket(this)
     if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.personalGroup.functions.isGroupExisting(requestData.UID)) return false
 
-    const queryResult = await databaseHandler.instances.personalGroup.dependencies.messages.functions.createMessage(databaseHandler.instances.personalGroup.functions.getDependencyREF("messages", requestData.UID), {
+    const queryResult = await databaseHandler.instances.personalGroup.dependencies.messages.functions.createMessage(requestData.UID, {
       message: requestData.message,
       owner: client_instance.UID
     })
