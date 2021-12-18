@@ -137,7 +137,7 @@ CModule.dependencies = {
           replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID],
           type: moduleDependencies.driver.QueryTypes.SELECT
         })
-        return moduleDependencies.utils.fetchSoloResult(queryResult)
+        return moduleDependencies.driver.fetchSoloResult(queryResult)
       },
 
       fetchContacts: async function(UID, type) {
@@ -159,7 +159,7 @@ CModule.dependencies = {
           replacements: [CModule.functions.getDependencyREF("contacts", UID)],
           type: moduleDependencies.driver.QueryTypes.SELECT
         })
-        if (queryResult && (queryResult.length > 0)) {
+        if (moduleDependencies.driver.fetchSoloResult(queryResult)) {
           queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
             const _type = contactData.type
             delete contactData.type
