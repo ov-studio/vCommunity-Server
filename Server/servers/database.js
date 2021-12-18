@@ -31,7 +31,10 @@ databaseDriver.createREF = async function(defName, skipSync, defData, defOptions
   else return createdREF
 }
 databaseDriver.destroyREF = function(refInstance, dropOptions) {
-  return refInstance.drop(dropOptions || {})
+  return refInstance.drop(dropOptions)
+}
+databaseDriver.destroySchema = function(schema) {
+  return databaseServer.dropSchema(schema, {cascade: true})
 }
 databaseDriver.fetchSoloResult = function(queryResult) {
   return (queryResult && (queryResult.length > 0) && queryResult[0]) || false

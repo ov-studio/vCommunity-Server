@@ -60,11 +60,7 @@ CModule.functions = {
         UID: UID
       }
     })
-    for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
-        await moduleDependencies.driver.destroyREF(dependencies[dependency][1].functions.constructor(CModule.functions.getDependencySchema(UID), true))
-      }
-    }
+    await moduleDependencies.driver.destroySchema(CModule.functions.getDependencySchema(UID))
     return true
   },
 
