@@ -121,7 +121,7 @@ CModule.dependencies = {
         if (!UID || !payload || !payload.message || !payload.owner) return false
 
         await CModule.isModuleLoaded
-        const REF = CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         const queryResult = await REF.create(payload)
         return queryResult
       },
@@ -130,7 +130,7 @@ CModule.dependencies = {
         if (!UID || !messageUID) return false
 
         await CModule.isModuleLoaded
-        const REF = CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         const queryResult = await REF.findAll({
           where: {
             UID: messageUID
@@ -143,7 +143,7 @@ CModule.dependencies = {
         if (!UID) return false
 
         await CModule.isModuleLoaded
-        const REF = CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         if (!refMessageUID) {
           var queryResult = await REF.findAll({
             order: [

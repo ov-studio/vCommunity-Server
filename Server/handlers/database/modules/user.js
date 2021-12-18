@@ -204,7 +204,8 @@ CModule.dependencies = {
         if (!groupUID) return false
 
         await CModule.isModuleLoaded
-        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        console.log(REF)
         await REF.destroy({
           where: {
             UID: contactUID
@@ -217,7 +218,7 @@ CModule.dependencies = {
             group: groupUID
           }
         })
-        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+        REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
         await REF.destroy({
           where: {
             UID: UID
@@ -239,13 +240,13 @@ CModule.dependencies = {
         if (queryResult.type != "friends") return false 
 
         await CModule.isModuleLoaded
-        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
           where: {
             UID: contactUID
           }
         })
-        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+        REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
         await REF.destroy({
           where: {
             UID: UID
@@ -260,7 +261,7 @@ CModule.dependencies = {
         if (queryResult.type == "blocked") return false 
 
         await CModule.isModuleLoaded
-        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
           where: {
             UID: contactUID
@@ -274,7 +275,7 @@ CModule.dependencies = {
         })
         queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
         if (queryResult && (queryResult.type != "blocked")) {
-          REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+          REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
           await REF.destroy({
             where: {
               UID: UID
