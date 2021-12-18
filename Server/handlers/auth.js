@@ -25,9 +25,8 @@ socketServer.of("/auth").on("connection", (socket) => {
   socket.on("Auth:onClientLogin", async function(authData, isReAuthRequest) {
     if (!authData) return false
 
-    var authResult = false
     try {
-      authResult = await authServer.auth().getUserByEmail(authData.email)
+      var authResult = await authServer.auth().getUserByEmail(authData.email)
     } catch(error) {
       return this.emit("Auth:onClientLogin", {status: error.code}, isReAuthRequest)
     }
