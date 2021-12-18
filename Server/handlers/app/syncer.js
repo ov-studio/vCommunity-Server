@@ -40,7 +40,7 @@ eventServer.on("App:onClientConnect", async function(socket, UID) {
   socketServer.of("/app").to(userRoom).emit("App:User:Datas:OnSync", clientDatas, true)
 
   await contactsHandler.syncUserContacts(UID, socket)
-  //await personalGroupHandler.syncUserGroups(UID, socket)
+  await personalGroupHandler.syncUserGroups(UID, socket)
   //await serverGroupHandler.syncUserGroups(UID, socket)
 })
 
