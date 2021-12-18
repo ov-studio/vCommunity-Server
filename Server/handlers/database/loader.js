@@ -16,7 +16,7 @@ const databaseServer = require("../../servers/database")
 const databaseInstances = {}
 const databaseModules = [
   require("./modules/user"),
-  //require("./modules/groups/personal"),
+  require("./modules/groups/personal"),
   //require("./modules/groups/server")
 ]
 

@@ -116,7 +116,6 @@ CModule.functions = {
 
 CModule.dependencies = {
   contacts: {
-    suffix: "cntcs",
     types: ["friends", "pending", "blocked"],
     functions: {
       constructor: function(schema, skipSync) {
@@ -165,7 +164,6 @@ CModule.dependencies = {
           })
           return queryResult || false
         }
-        console.log(REF)
         var queryResult = await REF.findAll()
         if (moduleDependencies.driver.fetchSoloResult(queryResult)) {
           queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
@@ -305,7 +303,6 @@ CModule.dependencies = {
 
   /*
   serverGroups: {
-    suffix: "srvrgrps",
     functions: {
       constructor: function(schema, skipSync) {
         return moduleDependencies.driver.createREF("serverGroups", skipSync, {
