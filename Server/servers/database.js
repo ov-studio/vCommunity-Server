@@ -20,7 +20,7 @@ authServer.initializeApp({
   credential: authServer.credential.cert(databaseCert.auth)
 })
 
-databaseDriver.createREF = async function(defName, defSchema, skipSync, defData, defOptions) {
+databaseDriver.createREF = async function(defName, skipSync, defData, defOptions) {
   var createdREF = databaseServer.define(defName, defData, defOptions)
   if (!skipSync) {
     await databaseServer.authenticate()
