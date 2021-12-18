@@ -74,6 +74,7 @@ var Posts = databaseServer.define('posSts', {
   */
 
   //moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" TEXT PRIMARY KEY, "email" TEXT UNIQUE NOT NULL, "username" TEXT UNIQUE NOT NULL, "DOB" JSON NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+  //(await CModule.REF.create(payload)).get({raw:true})
 
   Posts.sync({force: true}).then(async function () {
       var lol = await Posts.create({
@@ -83,3 +84,4 @@ var Posts = databaseServer.define('posSts', {
       });
       console.log(lol)
   });
+  

@@ -37,7 +37,7 @@ CModule.functions = {
     if (await CModule.functions.isUsernameExisting(payload.username)) return {status: "auth/username-already-exists"}
 
     try {
-      (await CModule.REF.create(payload)).get({raw:true})
+      (await CModule.REF.create(payload))
     } catch(error) {
       return {status: "auth/failed"}
     }
