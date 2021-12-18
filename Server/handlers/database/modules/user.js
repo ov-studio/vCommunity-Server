@@ -44,7 +44,7 @@ CModule.functions = {
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
       if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
-        await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID, false))
+        await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencySchema(payload.UID), false)
       }
     }
     return {success: true, status: "auth/successful"}
@@ -60,17 +60,14 @@ CModule.functions = {
     })
     for (const dependency in dependencies) {
       if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
-        const REF = dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], UID), true)
-        await moduleDependencies.driver.destroyREF(REF)
+        await moduleDependencies.driver.destroyREF(dependencies[dependency][1].functions.constructor(CModule.functions.getDependencySchema(UID), true))
       }
     }
     return true
   },
 
-  getDependencyREF: function(dependency, UID) {
-    if (!dependency || !CModule.dependencies[dependency] || !CModule.dependencies[dependency].functions || !CModule.dependencies[dependency].functions.constructor || !UID) return false
-
-    return "\"" + CModule.prefix + "_" + UID + "_" + CModule.dependencies[dependency].suffix + "\""
+  getDependencySchema: function(UID) {
+    return CModule.prefix + "_" + UID
   },
 
   getRoomREF: function(UID) {
@@ -122,8 +119,8 @@ CModule.dependencies = {
     suffix: "cntcs",
     types: ["friends", "pending", "blocked"],
     functions: {
-      constructor: function(REF, skipSync) {
-        return moduleDependencies.driver.createREF(REF, skipSync, {
+      constructor: function(schema, skipSync) {
+        return moduleDependencies.driver.createREF("contacts", skipSync, {
           "UID": {
             type: moduleDependencies.driver.TEXT,
             primaryKey: true
@@ -136,13 +133,15 @@ CModule.dependencies = {
             type: moduleDependencies.driver.BIGINT,
             unique: true
           }
+        }, {
+          schema: schema
         })
       },
 
       fetchContact: async function(UID, contactUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
       
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         const queryResult = await REF.findAll({
           where: {
             UID: contactUID
@@ -155,7 +154,7 @@ CModule.dependencies = {
         if (!await CModule.functions.isUserExisting(UID)) return false
         if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
 
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         if (type) {
           const queryResult = await REF.findAll({
             where: {
@@ -203,7 +202,7 @@ CModule.dependencies = {
         })
         if (!groupUID) return false
 
-        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         await REF.destroy({
           where: {
             UID: contactUID
@@ -216,7 +215,7 @@ CModule.dependencies = {
             group: groupUID
           }
         })
-        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", contactUID), true)
+        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(contactUID), true)
         await REF.destroy({
           where: {
             UID: UID
@@ -237,13 +236,13 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "friends") return false 
 
-        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         await REF.destroy({
           where: {
             UID: contactUID
           }
         })
-        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", contactUID), true)
+        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(contactUID), true)
         await REF.destroy({
           where: {
             UID: UID
@@ -257,7 +256,7 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type == "blocked") return false 
 
-        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         await REF.destroy({
           where: {
             UID: contactUID
@@ -271,7 +270,7 @@ CModule.dependencies = {
         })
         queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
         if (queryResult && (queryResult.type != "blocked")) {
-          REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", contactUID), true)
+          REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(contactUID), true)
           await REF.destroy({
             where: {
               UID: UID
@@ -286,7 +285,7 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "blocked") return false 
 
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         await REF.destroy({
           where: {
             UID: contactUID
@@ -297,22 +296,24 @@ CModule.dependencies = {
     }
   },
 
-  servers: {
-    suffix: "srvrs",
+  serverGroups: {
+    suffix: "srvrgrps",
     functions: {
-      constructor: function(REF) {
-        return moduleDependencies.server.define(REF, {
+      constructor: function(schema, skipSync) {
+        return moduleDependencies.driver.createREF("serverGroups", skipSync, {
           "group": {
             type: moduleDependencies.driver.BIGINT,
             unique: true
           }
-        }, {})
+        }, {
+          schema: schema
+        })
       },
 
       fetchGroups: async function(UID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        const REF = CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         const queryResult = await REF.findAll({})
         const fetchedGroups = []
         queryResult.rows.forEach(function(groupData) {
@@ -326,7 +327,7 @@ CModule.dependencies = {
       isGroupMember: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        const REF = CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         const queryResult = await REF.findAll({
           where: {
             group: groupUID
@@ -336,9 +337,9 @@ CModule.dependencies = {
       },
 
       joinGroup: async function(UID, groupUID) {
-        if (await CModule.dependencies.servers.functions.isGroupMember(UID, groupUID)) return false
+        if (await CModule.dependencies.serverGroups.functions.isGroupMember(UID, groupUID)) return false
 
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        const REF = CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         await REF.create({
           where: {
             group: groupUID,
@@ -348,9 +349,9 @@ CModule.dependencies = {
       },
 
       leaveGroup: async function(UID, groupUID) {
-        if (!await CModule.dependencies.servers.functions.isGroupMember(UID, groupUID)) return false
+        if (!await CModule.dependencies.serverGroups.functions.isGroupMember(UID, groupUID)) return false
 
-        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        const REF = CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getDependencySchema(UID), true)
         await REF.destroy({
           where: {
             group: groupUID
@@ -370,6 +371,7 @@ CModule.dependencies = {
 exports.injectModule = function(databaseModule, databaseInstances) {
   moduleDependencies.driver = databaseModule.databaseDriver
   moduleDependencies.server = databaseModule.databaseServer
+  moduleDependencies.defaultSchema = databaseModule.defaultSchema
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
 
@@ -394,6 +396,8 @@ exports.injectModule = function(databaseModule, databaseInstances) {
     "DOB": {
       type: moduleDependencies.driver.DATE,
       allowNull: false
-    },
+    }
+  }, {
+    schema: moduleDependencies.defaultSchema
   })
 }

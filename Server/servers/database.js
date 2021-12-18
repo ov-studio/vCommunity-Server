@@ -20,9 +20,13 @@ authServer.initializeApp({
   credential: authServer.credential.cert(databaseCert.auth)
 })
 
-databaseDriver.createREF = function(defName, skipSync, defData, defOptions) {
-  const createdREF = databaseServer.define(defName, defData, defOptions || {})
-  if (!skipSync) return createdREF.sync()
+databaseDriver.createREF = async function(defName, defSchema, skipSync, defData, defOptions) {
+  var createdREF = databaseServer.define(defName, defData, defOptions)
+  if (!skipSync) {
+    await databaseServer.authenticate()
+    if (defOptions.schema) await databaseServer.createSchema(defOptions.schema)
+    return createdREF.sync()
+  }
   else return createdREF
 }
 databaseDriver.destroyREF = function(refInstance, dropOptions) {
@@ -35,7 +39,8 @@ databaseDriver.fetchSoloResult = function(queryResult) {
 module.exports = {
   authServer,
   databaseDriver,
-  databaseServer
+  databaseServer,
+  defaultSchema: "app"
   /*
   databaseUtils: {
     async isTableExisting(tableName) {
