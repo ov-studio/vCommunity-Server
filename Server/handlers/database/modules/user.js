@@ -36,7 +36,7 @@ CModule.functions = {
     if (!payload.UID || !payload.username || !payload.DOB) return false
     if (await CModule.functions.isUsernameExisting(payload.username)) return {status: "auth/username-already-exists"}
 
-    await moduleDependencies.server.isAuthorized
+    await CModule.isModuleLoaded
     try {
       (await CModule.REF.create(payload))
     } catch(error) {
@@ -54,7 +54,7 @@ CModule.functions = {
   destructor: async function(UID) {
     if (!await CModule.functions.isUserExisting(UID)) return false
 
-    await moduleDependencies.server.isAuthorized
+    await CModule.isModuleLoaded
     await CModule.REF.destroy({
       where: {
         UID: UID
@@ -77,7 +77,7 @@ CModule.functions = {
   isUserExisting: async function(UID, fetchData, fetchPassword) {
     if (!UID) return false
 
-    await moduleDependencies.server.isAuthorized
+    await CModule.isModuleLoaded
     var queryResult = await CModule.REF.findAll({
       where: {
         UID: UID
@@ -97,7 +97,7 @@ CModule.functions = {
   isUsernameExisting: async function(username, fetchData) {
     if (!username) return false
 
-    await moduleDependencies.server.isAuthorized
+    await CModule.isModuleLoaded
     var queryResult = await CModule.REF.findAll({
       where: {
         username: username
@@ -141,7 +141,7 @@ CModule.dependencies = {
       fetchContact: async function(UID, contactUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
       
-        await moduleDependencies.server.isAuthorized
+        await CModule.isModuleLoaded
         const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         const queryResult = await REF.findAll({
           where: {
@@ -155,7 +155,7 @@ CModule.dependencies = {
         if (!await CModule.functions.isUserExisting(UID)) return false
         if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
 
-        await moduleDependencies.server.isAuthorized
+        await CModule.isModuleLoaded
         const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         if (type) {
           const queryResult = await REF.findAll({
@@ -165,7 +165,8 @@ CModule.dependencies = {
           })
           return queryResult || false
         }
-        var queryResult = await REF.findAll({})
+        console.log(REF)
+        var queryResult = await REF.findAll()
         if (moduleDependencies.driver.fetchSoloResult(queryResult)) {
           queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
             const _type = contactData.type
@@ -204,7 +205,7 @@ CModule.dependencies = {
         })
         if (!groupUID) return false
 
-        await moduleDependencies.server.isAuthorized
+        await CModule.isModuleLoaded
         var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
           where: {
@@ -239,7 +240,7 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "friends") return false 
 
-        await moduleDependencies.server.isAuthorized
+        await CModule.isModuleLoaded
         var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
           where: {
@@ -260,7 +261,7 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type == "blocked") return false 
 
-        await moduleDependencies.server.isAuthorized
+        await CModule.isModuleLoaded
         var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
           where: {
@@ -290,7 +291,7 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "blocked") return false 
 
-        await moduleDependencies.server.isAuthorized
+        await CModule.isModuleLoaded
         const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
           where: {
@@ -376,36 +377,40 @@ CModule.dependencies = {
 -- Module's Injector --
 ---------------------*/
 
-exports.injectModule = async function(databaseModule, databaseInstances) {
+exports.injectModule = function(databaseModule, databaseInstances) {
   moduleDependencies.driver = databaseModule.databaseDriver
   moduleDependencies.server = databaseModule.databaseServer
   moduleDependencies.defaultSchema = databaseModule.defaultSchema
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
 
-  CModule.REF = await moduleDependencies.driver.createREF(CModule.REF, false, {
-    "UID": {
-      type: moduleDependencies.driver.TEXT,
-      primaryKey: true
-    },
-    "email": {
-      type: moduleDependencies.driver.TEXT,
-      unique: true,
-      allowNull: false,
-      validate: {
-        isEmail: true
+  CModule.isModuleLoaded = new Promise(async function(resolve) {
+    await moduleDependencies.server.isAuthorized
+    CModule.REF = await moduleDependencies.driver.createREF(CModule.REF, false, {
+      "UID": {
+        type: moduleDependencies.driver.TEXT,
+        primaryKey: true
+      },
+      "email": {
+        type: moduleDependencies.driver.TEXT,
+        unique: true,
+        allowNull: false,
+        validate: {
+          isEmail: true
+        }
+      },
+      "username": {
+        type: moduleDependencies.driver.TEXT,
+        unique: true,
+        allowNull: false
+      },
+      "DOB": {
+        type: moduleDependencies.driver.DATE,
+        allowNull: false
       }
-    },
-    "username": {
-      type: moduleDependencies.driver.TEXT,
-      unique: true,
-      allowNull: false
-    },
-    "DOB": {
-      type: moduleDependencies.driver.DATE,
-      allowNull: false
-    }
-  }, {
-    schema: moduleDependencies.defaultSchema
+    }, {
+      schema: moduleDependencies.defaultSchema
+    })
+    resolve()
   })
 }
