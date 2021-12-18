@@ -73,15 +73,11 @@ CModule.functions = {
   isUserExisting: async function(UID, fetchData, fetchPassword) {
     if (!UID) return false
 
-    try {
-        var queryResult = await CModule.REF.findAll({
-            where: {
-              UID: UID
-            }
-          })
-    } catch(error) {
-        console.log(error)
-    }
+    var queryResult = await CModule.REF.findAll({
+      where: {
+        UID: UID
+      }
+    })
     queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
     if (fetchData) {
       if (queryResult) {
