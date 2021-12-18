@@ -16,6 +16,7 @@ const authServer = require("firebase-admin")
 const databaseCert = (process.env["cert_database"] && JSON.parse(process.env["cert_database"])) || require("../../.cert-database.json")
 const databaseDriver = require("sequelize")
 const databaseServer = new databaseDriver(databaseCert.database)
+databaseServer.isAuthorized = databaseServer.authenticate()
 authServer.initializeApp({
   credential: authServer.credential.cert(databaseCert.auth)
 })
@@ -23,8 +24,8 @@ authServer.initializeApp({
 databaseDriver.createREF = async function(defName, skipSync, defData, defOptions) {
   var createdREF = databaseServer.define(defName, defData, defOptions)
   if (!skipSync) {
-    await databaseServer.authenticate()
-    if (defOptions.schema) await databaseServer.createSchema(defOptions.schema)
+    await databaseServer.isAuthorized
+    await databaseServer.createSchema(defOptions.schema)
     return createdREF.sync()
   }
   else return createdREF
