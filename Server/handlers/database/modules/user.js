@@ -114,7 +114,20 @@ CModule.dependencies = {
     types: ["friends", "pending", "blocked"],
     functions: {
       constructor: function(REF) {
-        return moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${REF}("UID" TEXT PRIMARY KEY, "type" TEXT NOT NULL, "group" BIGINT UNIQUE, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+        return moduleDependencies.server.define(REF, {
+          "UID": {
+            type: moduleDependencies.driver.TEXT,
+            primaryKey: true
+          },
+          "type": {
+            type: moduleDependencies.driver.TEXT,
+            allowNull: false
+          },
+          "group": {
+            type: moduleDependencies.driver.BIGINT,
+            unique: true
+          }
+        }, {})
       },
 
       fetchContact: async function(UID, contactUID) {
