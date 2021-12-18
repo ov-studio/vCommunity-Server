@@ -211,11 +211,9 @@ CModule.dependencies = {
           }
         })
         await REF.create({
-          where: {
-            UID: contactUID,
-            type: "friends",
-            group: groupUID
-          }
+          UID: contactUID,
+          type: "friends",
+          group: groupUID
         })
         REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
         await REF.destroy({
@@ -224,11 +222,9 @@ CModule.dependencies = {
           }
         })
         await REF.create({
-          where: {
-            UID: UID,
-            type: "friends",
-            group: groupUID
-          }
+          UID: UID,
+          type: "friends",
+          group: groupUID
         })
         return true
       },
@@ -267,10 +263,8 @@ CModule.dependencies = {
           }
         })
         await REF.create({
-          where: {
-            UID: contactUID,
-            type: "blocked"
-          }
+          UID: contactUID,
+          type: "blocked"
         })
         queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
         if (queryResult && (queryResult.type != "blocked")) {
@@ -346,9 +340,7 @@ CModule.dependencies = {
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.create({
-          where: {
-            group: groupUID,
-          }
+          group: groupUID,
         })
         return true
       },
