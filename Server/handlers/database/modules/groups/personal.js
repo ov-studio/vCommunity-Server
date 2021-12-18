@@ -14,7 +14,7 @@
 
 const moduleName = "personalGroup", moduleDependencies = {}
 const CModule = {
-  REF: "\"APP_PERSONAL_GROUPS\"",
+  REF: "APP_PERSONAL_GROUPS",
   prefix: "prsnlgrp"
 }
 
@@ -124,9 +124,28 @@ CModule.dependencies = {
 ---------------------*/
 
 exports.injectModule = function(databaseModule, databaseInstances) {
+  moduleDependencies.driver = databaseModule.databaseDriver
   moduleDependencies.server = databaseModule.databaseServer
-  moduleDependencies.utils = databaseModule.databaseUtils
+  moduleDependencies.defaultSchema = databaseModule.defaultSchema
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
-  moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" BIGSERIAL PRIMARY KEY, "REF" TEXT UNIQUE NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+
+  CModule.isModuleLoaded = new Promise(async function(resolve) {
+    await moduleDependencies.server.isAuthorized
+    CModule.REF = await moduleDependencies.driver.createREF(CModule.REF, false, {
+      "UID": {
+        type: moduleDependencies.driver.BIGINT,
+        primaryKey: true
+        // TODO: MAKE AUTO INCREMENT..
+      },
+      "REF": {
+        type: moduleDependencies.driver.TEXT,
+        unique: true,
+        allowNull: false
+      },
+    }, {
+      schema: moduleDependencies.defaultSchema
+    })
+    resolve()
+  })
 }
