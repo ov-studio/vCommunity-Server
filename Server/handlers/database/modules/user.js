@@ -43,7 +43,9 @@ CModule.functions = {
     }
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID))
+      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
+        await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], payload.UID, false))
+      }
     }
     return {success: true, status: "auth/successful"}
   },
@@ -51,9 +53,16 @@ CModule.functions = {
   destructor: async function(UID) {
     if (!await CModule.functions.isUserExisting(UID)) return false
 
-    await moduleDependencies.server.query(`DELETE FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
+    await CModule.REF.destroy({
+      where: {
+        UID: UID
+      }
+    })
     for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await moduleDependencies.server.query(`DROP TABLE IF EXISTS ${CModule.functions.getDependencyREF(dependencies[dependency][0], UID)}`)
+      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
+        const REF = dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], UID), true)
+        await moduleDependencies.driver.destroyREF(REF)
+      }
     }
     return true
   },
@@ -113,8 +122,8 @@ CModule.dependencies = {
     suffix: "cntcs",
     types: ["friends", "pending", "blocked"],
     functions: {
-      constructor: function(REF) {
-        return moduleDependencies.server.define(REF, {
+      constructor: function(REF, skipSync) {
+        return moduleDependencies.driver.createREF(REF, skipSync, {
           "UID": {
             type: moduleDependencies.driver.TEXT,
             primaryKey: true
@@ -133,9 +142,11 @@ CModule.dependencies = {
       fetchContact: async function(UID, contactUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
       
-        const queryResult = await moduleDependencies.server.query('SELECT * FROM ? WHERE UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID],
-          type: moduleDependencies.driver.QueryTypes.SELECT
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        const queryResult = await REF.findAll({
+          where: {
+            UID: contactUID
+          }
         })
         return moduleDependencies.driver.fetchSoloResult(queryResult)
       },
@@ -144,21 +155,16 @@ CModule.dependencies = {
         if (!await CModule.functions.isUserExisting(UID)) return false
         if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
 
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
         if (type) {
-          var queryResult = false
-          try {
-            queryResult = await moduleDependencies.server.query('SELECT * FROM ? WHERE type = ?', {
-              replacements: [CModule.functions.getDependencyREF("contacts", UID), type],
-              type: moduleDependencies.driver.QueryTypes.SELECT
-            })
-          } catch(error) {}
+          const queryResult = await REF.findAll({
+            where: {
+              type: type
+            }
+          })
           return queryResult || false
         }
-
-        var queryResult = await moduleDependencies.server.query('SELECT * FROM ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID)],
-          type: moduleDependencies.driver.QueryTypes.SELECT
-        })
+        var queryResult = await REF.findAll({})
         if (moduleDependencies.driver.fetchSoloResult(queryResult)) {
           queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
             const _type = contactData.type
@@ -197,21 +203,31 @@ CModule.dependencies = {
         })
         if (!groupUID) return false
 
-        await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        await REF.destroy({
+          where: {
+            UID: contactUID
+          }
         })
-        await moduleDependencies.server.query('INSERT INTO ? UID = ? type = ? group = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID, "friends", groupUID],
-          type: moduleDependencies.driver.QueryTypes.INSERT
+        await REF.create({
+          where: {
+            UID: contactUID,
+            type: "friends",
+            group: groupUID
+          }
         })
-        await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", contactUID), UID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", contactUID), true)
+        await REF.destroy({
+          where: {
+            UID: UID
+          }
         })
-        await moduleDependencies.server.query('INSERT INTO ? UID = ? type = ? group = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", contactUID), UID, "friends", groupUID],
-          type: moduleDependencies.driver.QueryTypes.INSERT
+        await REF.create({
+          where: {
+            UID: UID,
+            type: "friends",
+            group: groupUID
+          }
         })
         return true
       },
@@ -221,13 +237,17 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "friends") return false 
 
-        await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        await REF.destroy({
+          where: {
+            UID: contactUID
+          }
         })
-        await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", contactUID), UID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", contactUID), true)
+        await REF.destroy({
+          where: {
+            UID: UID
+          }
         })
         return true
       },
@@ -237,19 +257,25 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type == "blocked") return false 
 
-        await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        var REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        await REF.destroy({
+          where: {
+            UID: contactUID
+          }
         })
-        await moduleDependencies.server.query('INSERT INTO ? UID = ? type = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID, "blocked"],
-          type: moduleDependencies.driver.QueryTypes.INSERT
+        await REF.create({
+          where: {
+            UID: contactUID,
+            type: "blocked"
+          }
         })
         queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
         if (queryResult && (queryResult.type != "blocked")) {
-          await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-            replacements: [CModule.functions.getDependencyREF("contacts", contactUID), UID],
-            type: moduleDependencies.driver.QueryTypes.DELETE
+          REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", contactUID), true)
+          await REF.destroy({
+            where: {
+              UID: UID
+            }
           })
         }
         return true
@@ -260,9 +286,11 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "blocked") return false 
 
-        await moduleDependencies.server.query('DELETE FROM ? UID = ?', {
-          replacements: [CModule.functions.getDependencyREF("contacts", UID), contactUID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("contacts", UID), true)
+        await REF.destroy({
+          where: {
+            UID: contactUID
+          }
         })
         return true
       }
@@ -281,14 +309,11 @@ CModule.dependencies = {
         }, {})
       },
 
-      fetchServerGroups: async function(UID) {
+      fetchGroups: async function(UID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
-        const queryResult = await moduleDependencies.server.query('SELECT * FROM ?', {
-          replacements: [CModule.functions.getDependencyREF("servers", UID)],
-          type: moduleDependencies.driver.QueryTypes.SELECT
-        })
-        if (!queryResult) return false
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        const queryResult = await REF.findAll({})
         const fetchedGroups = []
         queryResult.rows.forEach(function(groupData) {
           fetchedGroups.push({
@@ -298,33 +323,38 @@ CModule.dependencies = {
         return fetchedGroups
       },
 
-      isUserServerMember: async function(UID, serverUID) {
+      isGroupMember: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
-        var queryResult = await moduleDependencies.server.query('SELECT * FROM ? WHERE server = ?', {
-          replacements: [CModule.functions.getDependencyREF("servers", UID), serverUID],
-          type: moduleDependencies.driver.QueryTypes.SELECT
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        const queryResult = await REF.findAll({
+          where: {
+            group: groupUID
+          }
         })
-        queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-        return (queryResult && true) || false
+        return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
       },
 
-      joinServer: async function(UID, serverUID) {
-        if (await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
+      joinGroup: async function(UID, groupUID) {
+        if (await CModule.dependencies.servers.functions.isGroupMember(UID, groupUID)) return false
 
-        await moduleDependencies.server.query('INSERT INTO ? server = ?', {
-          replacements: [CModule.functions.getDependencyREF("servers", UID), serverUID],
-          type: moduleDependencies.driver.QueryTypes.INSERT
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        await REF.create({
+          where: {
+            group: groupUID,
+          }
         })
         return true
       },
 
-      leaveServer: async function(UID, serverUID) {
-        if (!await CModule.dependencies.servers.functions.isUserServerMember(UID, serverUID)) return false
+      leaveGroup: async function(UID, groupUID) {
+        if (!await CModule.dependencies.servers.functions.isGroupMember(UID, groupUID)) return false
 
-        await moduleDependencies.server.query('DELETE FROM ? server = ?', {
-          replacements: [CModule.functions.getDependencyREF("servers", UID), serverUID],
-          type: moduleDependencies.driver.QueryTypes.DELETE
+        const REF = CModule.dependencies.contacts.functions.constructor(CModule.functions.getDependencyREF("servers", UID), true)
+        await REF.destroy({
+          where: {
+            group: groupUID
+          }
         })
         return true
       }
@@ -343,7 +373,7 @@ exports.injectModule = function(databaseModule, databaseInstances) {
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
 
-  CModule.REF = moduleDependencies.server.define(CModule.REF, {
+  CModule.REF = moduleDependencies.driver.createREF(CModule.REF, false, {
     "UID": {
       type: moduleDependencies.driver.TEXT,
       primaryKey: true

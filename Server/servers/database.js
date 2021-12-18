@@ -25,6 +25,9 @@ databaseDriver.createREF = function(defName, skipSync, defData, defOptions) {
   if (!skipSync) createdREF.sync()
   return createdREF
 }
+databaseDriver.destroyREF = function(refInstance) {
+  return refInstance.drop()
+}
 databaseDriver.fetchSoloResult = function(queryResult) {
   return (queryResult && (queryResult.length > 0) && queryResult[0]) || false
 }

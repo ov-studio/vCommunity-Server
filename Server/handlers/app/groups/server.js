@@ -24,7 +24,7 @@ const instanceHandler = require("../instance")
 
 async function getUserGroups(UID, socket) {
   UID = UID || instanceHandler.getInstancesBySocket(socket, true)
-  return databaseHandler.instances.user.dependencies.servers.functions.fetchServerGroups(UID)
+  return databaseHandler.instances.user.dependencies.servers.functions.fetchGroups(UID)
 }
 
 // TODO: ALLOW UNFORCED SYNC (DELETE GROUP WHICH ISN'T NEEDED ANYMORE INSTEAD OF FORCE RESETTING EVERYTHING)
@@ -94,7 +94,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       owner: client_instance.UID
     })
     if (!groupUID) return false
-    await databaseHandler.instances.user.dependencies.servers.functions.joinServer(client_instance.UID, groupUID)
+    await databaseHandler.instances.user.dependencies.servers.functions.joinGroup(client_instance.UID, groupUID)
     eventServer.emit("App:Groups:Server:onSync", UID, null, true)
     return true
   })
