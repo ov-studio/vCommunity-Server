@@ -29,7 +29,8 @@ async function getUserGroups(UID, socket) {
 
 async function syncUserGroups(UID, socket, syncInstances) {
   if (!UID && !socket) return false
-  let fetchedInstances = null
+
+  var fetchedInstances = null
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
     if (socketInstance) {
@@ -48,9 +49,9 @@ async function syncUserGroups(UID, socket, syncInstances) {
     else fetchedInstances = {[(socket.id)]: socket}
   }
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
+    clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupData.UID)
-      clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
       clientInstance[1].join(groupRoom)
     })
   })
