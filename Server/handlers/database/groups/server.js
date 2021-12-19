@@ -81,9 +81,31 @@ CModule.dependencies = {}
 ---------------------*/
 
 exports.injectModule = function(databaseModule, databaseInstances) {
+  moduleDependencies.driver = databaseModule.databaseDriver
   moduleDependencies.server = databaseModule.databaseServer
-  moduleDependencies.utils = databaseModule.databaseUtils
+  moduleDependencies.defaultSchema = databaseModule.defaultSchema
   moduleDependencies.instances = databaseInstances
   moduleDependencies.instances[moduleName] = CModule
-  moduleDependencies.server.query(`CREATE TABLE IF NOT EXISTS ${CModule.REF}("UID" BIGSERIAL PRIMARY KEY, "name" TEXT NOT NULL, "owner" TEXT NOT NULL, "DOC" TIMESTAMP WITH TIME ZONE DEFAULT now())`)
+
+  CModule.isModuleLoaded = new Promise(async function(resolve) {
+    await moduleDependencies.server.isAuthorized
+    CModule.REF = await moduleDependencies.driver.createREF(CModule.REF, false, {
+      "UID": {
+        type: moduleDependencies.driver.BIGINT,
+        autoIncrement: true,
+        primaryKey: true
+      },
+      "name": {
+        type: moduleDependencies.driver.TEXT,
+        allowNull: false
+      },
+      "owner": {
+        type: moduleDependencies.driver.TEXT,
+        allowNull: false
+      },
+    }, {
+      schema: moduleDependencies.defaultSchema
+    })
+    resolve()
+  })
 }
