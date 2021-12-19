@@ -25,15 +25,20 @@ const CModule = {
 
 CModule.functions = {
   constructor: async function(payload) {
-    if (!payload.name || !payload.owner) return false
+    if (!payload.name || !payload.owner || (typeof(payload.name) != "string") || (payload.name.length <= 0)) return false
+    if (!await moduleDependencies.instances.user.functions.isUserExisting(payload.owner)) return false
 
-    const preparedQuery = moduleDependencies.utils.prepareQuery(payload)
-    queryResult = await moduleDependencies.server.query(`INSERT INTO ${CModule.REF}(${preparedQuery.columns}) VALUES(${preparedQuery.valueIDs}) RETURNING *`, preparedQuery.values)
-    queryResult = moduleDependencies.utils.fetchSoloResult(queryResult)
-    if (!queryResult) return false
+    await CModule.isModuleLoaded
+    try {
+      var queryResult = (await CModule.REF.create(payload)).get({raw: true})  
+    } catch(error) {
+      return false
+    }
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await dependencies[dependency][1].functions.constructor(CModule.functions.getDependencyREF(dependencies[dependency][0], queryResult.UID))
+      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
+        await dependencies[dependency][1].functions.constructor(CModule.functions.getInstanceSchema(queryResult.UID), false)
+      }
     }
     return queryResult.UID
   },
@@ -41,17 +46,18 @@ CModule.functions = {
   destructor: async function(UID) {
     if (!await CModule.functions.isGroupExisting(UID)) return false
 
-    await moduleDependencies.server.query(`DELETE FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
-    for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) await moduleDependencies.server.query(`DROP TABLE IF EXISTS ${CModule.functions.getDependencyREF(dependencies[dependency][0], UID)}`)
-    }
+    await CModule.isModuleLoaded
+    await CModule.REF.destroy({
+      where: {
+        UID: UID
+      }
+    })
+    await moduleDependencies.driver.destroySchema(CModule.functions.getInstanceSchema(UID))
     return true
   },
 
-  getDependencyREF: function(dependency, UID) {
-    if (!dependency || !CModule.dependencies[dependency] || !CModule.dependencies[dependency].functions || !CModule.dependencies[dependency].functions.constructor || !UID) return false
-
-    return "\"" + CModule.prefix + "_" + UID + "_" + CModule.dependencies[dependency].suffix + "\""
+  getInstanceSchema: function(UID) {
+    return "\"" + CModule.prefix + "_" + UID + "\""
   },
 
   getRoomREF: function(UID) {
@@ -63,8 +69,12 @@ CModule.functions = {
   isGroupExisting: async function(UID) {
     if (!UID) return false
 
-    const queryResult = await moduleDependencies.server.query(`SELECT * FROM ${CModule.REF} WHERE "UID" = '${UID}'`)
-    return (queryResult && queryResult.rows.length > 0) || false
+    const queryResult = await CModule.REF.findAll({
+      where: {
+        UID: UID
+      }
+    })
+    return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
   }
 }
 
