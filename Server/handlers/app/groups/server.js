@@ -44,6 +44,8 @@ async function syncUserGroups(UID, socket, syncInstances) {
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
 
+  console.log("FETCHED GROUPS: ")
+  console.log(fetchedGroups)
   if (!syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
@@ -96,9 +98,6 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       owner: socketInstance.UID
     })
     if (!groupUID) return false
-    console.log("CREATED SERVER")
-    console.log(groupUID)
-    //await databaseHandler.instances.user.dependencies.serverGroups.functions.joinGroup(socketInstance.UID, groupUID)
     eventServer.emit("App:Groups:Server:onSync", UID, null, true)
     return true
   })
