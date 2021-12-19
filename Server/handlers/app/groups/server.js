@@ -48,7 +48,6 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
-
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)

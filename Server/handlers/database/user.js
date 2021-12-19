@@ -316,13 +316,12 @@ CModule.dependencies = {
     }
   },
 
-  /*
   serverGroups: {
     functions: {
       constructor: function(schema, skipSync) {
         return moduleDependencies.driver.createREF("serverGroups", skipSync, {
           "group": {
-            type: moduleDependencies.driver.BIGINT,
+            type: moduleDependencies.driver.TEXT,
             unique: true
           }
         }, {
@@ -330,20 +329,40 @@ CModule.dependencies = {
         })
       },
 
+      fetchGroup: async function(UID, groupUID) {
+        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID)) return false
+
+        await CModule.isModuleLoaded
+        const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        var queryResult = await REF.findAll({
+          where: {
+            group: groupUID
+          }
+        })
+        queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+        if (queryResult) return {UID: queryResult.group}
+        else return false
+      },
+
       fetchGroups: async function(UID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
+        await CModule.isModuleLoaded
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = await REF.findAll({})
+        const queryResult = await REF.findAll()
         const fetchedGroups = []
-        queryResult.rows.forEach(function(groupData) {
-          fetchedGroups.push({
-            UID: groupData.group
-          })
-        })
+        for (const groupIndex in queryResult) {
+          const groupData = queryResult[groupIndex]
+          if (await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupData.group)) {
+            fetchedGroups.push({
+              UID: contactData.group
+            })
+          }
+        }
         return fetchedGroups
       },
 
+      /*
       isGroupMember: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
@@ -376,10 +395,9 @@ CModule.dependencies = {
           }
         })
         return true
-      }
+      }*/
     }
   }
-  */
 }
 
 
