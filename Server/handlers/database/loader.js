@@ -17,7 +17,7 @@ const databaseInstances = {}
 const databaseModules = [
   require("./user"),
   require("./groups/personal"),
-  //require("./groups/server")
+  require("./groups/server")
 ]
 
 
