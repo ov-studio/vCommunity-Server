@@ -83,10 +83,10 @@ module.exports = {
 eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
-    const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.users.dependencies.personalGroups.functions.isGroupMember(client_instance.UID, requestData.UID)) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance) return false
 
-    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(requestData.UID, requestData.messageUID)
+    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(requestData.UID, requestData.messageUID, socketInstance.UID)
     if (!groupMessages) return false
     this.emit("App:Groups:Personal:onSyncMessages", {
       UID: requestData.UID,
@@ -97,12 +97,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   })
 
   socket.on("App:Groups:Personal:onClientSendMessage", async function(requestData) {
-    const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance) return false
 
     const queryResult = await databaseHandler.instances.personalGroup.dependencies.messages.functions.createMessage(requestData.UID, {
       message: requestData.message,
-      owner: client_instance.UID
+      owner: socketInstance.UID
     })
     if (!queryResult) return false
     const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(requestData.UID)
