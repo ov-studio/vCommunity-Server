@@ -292,7 +292,9 @@ CModule.dependencies = {
             group: groupUID
           }
         })
-        return moduleDependencies.driver.fetchSoloResult(queryResult)
+        queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+        if (queryResult) return {UID: queryResult.group, participantUID: queryResult.UID}
+        else return false
       },
 
       fetchGroups: async function(UID) {
@@ -304,8 +306,8 @@ CModule.dependencies = {
           const contactData = queryResult[contactIndex]
           if (await moduleDependencies.instances.personalGroup.functions.isGroupExisting(contactData.group)) {
             fetchedGroups.push({
-              UID: contactData[1].group,
-              participantUID: contactData[1].UID
+              UID: contactData.group,
+              participantUID: contactData.UID
             })
           }
         }
