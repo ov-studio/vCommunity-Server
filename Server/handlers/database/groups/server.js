@@ -189,6 +189,11 @@ exports.injectModule = function(databaseModule, databaseInstances) {
         autoIncrement: true,
         primaryKey: true
       },
+      "REF": {
+        type: moduleDependencies.driver.TEXT,
+        unique: true,
+        allowNull: false
+      },
       "name": {
         type: moduleDependencies.driver.TEXT,
         allowNull: false
@@ -196,7 +201,7 @@ exports.injectModule = function(databaseModule, databaseInstances) {
       "owner": {
         type: moduleDependencies.driver.TEXT,
         allowNull: false
-      },
+      }
     }, {
       schema: moduleDependencies.defaultSchema
     })
