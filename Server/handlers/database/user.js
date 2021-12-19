@@ -180,7 +180,7 @@ CModule.dependencies = {
       addContact: async function(UID, contactUID) {
         if ((UID == contactUID) || !await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
-        if (queryResult.type != "pending") return false 
+        if (queryResult.type != "pending") return false
         const groupUID = await moduleDependencies.instances.personalGroup.functions.constructor({
           senderUID: contactUID,
           receiverUID: UID
@@ -321,7 +321,7 @@ CModule.dependencies = {
       constructor: function(schema, skipSync) {
         return moduleDependencies.driver.createREF("serverGroups", skipSync, {
           "group": {
-            type: moduleDependencies.driver.TEXT,
+            type: moduleDependencies.driver.BIGINT,
             unique: true
           }
         }, {
@@ -362,9 +362,8 @@ CModule.dependencies = {
         return fetchedGroups
       },
 
-      /*
       joinGroup: async function(UID, groupUID) {
-        if (await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
+        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID) || await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.create({
@@ -374,7 +373,7 @@ CModule.dependencies = {
       },
 
       leaveGroup: async function(UID, groupUID) {
-        if (!await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
+        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID) || !await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
@@ -383,7 +382,7 @@ CModule.dependencies = {
           }
         })
         return true
-      }*/
+      }
     }
   }
 }
@@ -427,6 +426,13 @@ exports.injectModule = function(databaseModule, databaseInstances) {
     }, {
       schema: moduleDependencies.defaultSchema
     })
+    /*
+    var users = await CModule.REF.findAll()
+    users.forEach(function(user) {
+        console.log(user)
+        CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(user.UID), false)
+    })
+    */
     resolve()
   })
 }

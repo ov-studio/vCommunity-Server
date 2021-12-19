@@ -26,6 +26,8 @@ const CModule = {
 CModule.functions = {
   constructor: async function(payload) {
     if (!payload.senderUID || !payload.receiverUID) return false
+    if (!await moduleDependencies.instances.user.functions.isUserExisting(payload.senderUID) || !await moduleDependencies.instances.user.functions.isUserExisting(payload.receiverUID)) return false
+
     await CModule.isModuleLoaded
     var groupRefs = [payload.senderUID + "/" + payload.receiverUID, payload.receiverUID + "/" + payload.senderUID]
     var queryResult = await CModule.REF.findAll({

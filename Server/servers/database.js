@@ -21,11 +21,20 @@ authServer.initializeApp({
   credential: authServer.credential.cert(databaseCert.auth)
 })
 
-databaseDriver.createREF = async function(defName, skipSync, defData, defOptions) {
+databaseDriver.createToken = function(identifier, isEncrypted) {
+  identifier = identifier || 0
+  var randomIdentifier = Math.random().toString(36).substring(2)
+  var intervalIdentifier = (new Date()).getTime().toString(36)
+  var createdToken = identifier + randomIdentifier + intervalIdentifier
+  if (isEncrypted) return true //TODO: ADD SOON
+  else return createdToken
+}
+databaseDriver.createREF = async function(defName, skipSync, defData, defOptions, force) { //TODO: REMOVE FORCE
   var createdREF = databaseServer.define(defName, defData, defOptions)
   if (!skipSync) {
     await databaseServer.isAuthorized
     await databaseServer.createSchema(defOptions.schema)
+    //if (force) return createdREF.sync({force:  true}) //TODO: REMOVE IN PROD
     return createdREF.sync()
   }
   else return createdREF

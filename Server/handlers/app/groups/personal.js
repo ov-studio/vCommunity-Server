@@ -52,6 +52,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
     clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupData.UID)
+      // TODO: DISCONNECT INSTANCE FROM KICKED GROUP SOMEHOW
       clientInstance[1].join(groupRoom)
     })
   })
