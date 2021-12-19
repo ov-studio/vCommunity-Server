@@ -355,7 +355,7 @@ CModule.dependencies = {
           const groupData = queryResult[groupIndex]
           if (await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupData.group)) {
             fetchedGroups.push({
-              UID: contactData.group
+              UID: groupData.group
             })
           }
         }
