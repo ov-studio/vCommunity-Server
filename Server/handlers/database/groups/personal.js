@@ -118,7 +118,7 @@ CModule.dependencies = {
 
       createMessage: async function(UID, payload) {
         if (!UID || !payload || !payload.message || !payload.owner || (typeof(payload.message) != "string") || (payload.message.length <= 0)) return false
-        if (!await moduleDependencies.instances.user.dependencies.personalGroups.functions.isGroupMember(payload.owner, UID)) return false
+        if (!await moduleDependencies.instances.user.dependencies.personalGroups.functions.fetchGroup(payload.owner, UID)) return false
   
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)

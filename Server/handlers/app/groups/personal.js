@@ -24,7 +24,7 @@ const instanceHandler = require("../instance")
 
 async function getUserGroups(UID, socket) {
   UID = UID || instanceHandler.getInstancesBySocket(socket, true)
-  return databaseHandler.instances.user.dependencies.contacts.functions.fetchPersonalGroups(UID)
+  return databaseHandler.instances.user.dependencies.personalGroups.functions.fetchGroups(UID)
 }
 
 async function syncUserGroups(UID, socket, syncInstances) {
@@ -82,7 +82,7 @@ module.exports = {
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
-    if (!requestData || !requestData.UID || !requestData.messageUID) return false
+    if (!requestData) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
     if (!socketInstance) return false
 
@@ -97,6 +97,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   })
 
   socket.on("App:Groups:Personal:onClientSendMessage", async function(requestData) {
+    if (!requestData) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
     if (!socketInstance) return false
 

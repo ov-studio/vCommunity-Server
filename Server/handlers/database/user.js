@@ -177,20 +177,6 @@ CModule.dependencies = {
         return fetchedContacts
       },
 
-      fetchPersonalGroups: async function(UID) {
-        const queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, "friends")
-        if (!queryResult) return false
-
-        const fetchedGroups = []
-        Object.entries(queryResult).forEach(function(contactData) {
-          fetchedGroups.push({
-            UID: contactData[1].group,
-            participantUID: contactData[1].UID
-          })
-        })
-        return fetchedGroups
-      },
-
       addContact: async function(UID, contactUID) {
         if ((UID == contactUID) || !await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
@@ -295,7 +281,7 @@ CModule.dependencies = {
 
   personalGroups: {
     functions: {
-      isGroupMember: async function(UID, groupUID) {
+      fetchGroup: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.personalGroups.functions.isGroupExisting(groupUID)) return false
 
         await CModule.isModuleLoaded
@@ -306,7 +292,22 @@ CModule.dependencies = {
             group: groupUID
           }
         })
-        return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
+        return moduleDependencies.driver.fetchSoloResult(queryResult)
+      },
+
+      fetchGroups: async function(UID) {
+        const queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, "friends")
+        if (!queryResult) return false
+
+        // TODO: CHECK IF GROUP EXISTS..
+        const fetchedGroups = []
+        Object.entries(queryResult).forEach(function(contactData) {
+          fetchedGroups.push({
+            UID: contactData[1].group,
+            participantUID: contactData[1].UID
+          })
+        })
+        return fetchedGroups
       }
     }
   },
