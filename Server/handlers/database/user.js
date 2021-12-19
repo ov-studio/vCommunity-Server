@@ -299,14 +299,16 @@ CModule.dependencies = {
         const queryResult = await CModule.dependencies.contacts.functions.fetchContacts(UID, "friends")
         if (!queryResult) return false
 
-        // TODO: CHECK IF GROUP EXISTS..
         const fetchedGroups = []
-        Object.entries(queryResult).forEach(function(contactData) {
-          fetchedGroups.push({
-            UID: contactData[1].group,
-            participantUID: contactData[1].UID
-          })
-        })
+        for (const contactIndex in queryResult) {
+          const contactData = queryResult[contactIndex]
+          if (await moduleDependencies.instances.personalGroup.functions.isGroupExisting(contactData.group)) {
+            fetchedGroups.push({
+              UID: contactData[1].group,
+              participantUID: contactData[1].UID
+            })
+          }
+        }
         return fetchedGroups
       }
     }
