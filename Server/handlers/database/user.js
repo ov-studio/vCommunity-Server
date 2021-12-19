@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------
      Resource: vClient (Server)
-     Script: handlers: database: modules: user.js
+     Script: handlers: database: user.js
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
      DOC: 23/11/2021
@@ -12,8 +12,8 @@
 -- Imports --
 -----------*/
 
-const utilityHandler = require("../../utility")
-const instanceHandler = require("../../app/instance")
+const utilityHandler = require("../utility")
+const instanceHandler = require("../app/instance")
 
 
 /*----------

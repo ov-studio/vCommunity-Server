@@ -1,6 +1,6 @@
 /*----------------------------------------------------------------
      Resource: vClient (Server)
-     Script: handlers: database: modules: groups: server.js
+     Script: handlers: database: groups: server.js
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
      DOC: 23/11/2021
