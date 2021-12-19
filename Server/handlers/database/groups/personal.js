@@ -45,7 +45,7 @@ CModule.functions = {
     }
     const dependencies = Object.entries(CModule.dependencies)
     for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && dependencies[dependency][1].functions.constructor) {
+      if (dependencies[dependency][1].functions && !dependencies[dependency][1].disableAutoSync && dependencies[dependency][1].functions.constructor) {
         await dependencies[dependency][1].functions.constructor(CModule.functions.getInstanceSchema(queryResult.UID), false)
       }
     }
