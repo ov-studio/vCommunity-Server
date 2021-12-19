@@ -99,7 +99,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
   /*
-  socket.on("App:Group:Personal:onClientFetchMessages", async function(requestData) {
+  socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
     if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
@@ -114,7 +114,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
 
-  socket.on("App:Group:Personal:onClientSendMessage", async function(requestData) {
+  socket.on("App:Groups:Personal:onClientSendMessage", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.message || (typeof(requestData.message) != "string") || (requestData.message.length <= 0)) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
     if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
