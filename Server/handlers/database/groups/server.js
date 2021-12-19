@@ -88,9 +88,8 @@ CModule.dependencies = {
     disableAutoSync: false,
     syncRate: 500,
     functions: {
-      /*
-      constructor: function(schema, skipSync) {
-        return moduleDependencies.driver.createREF("messages", skipSync, {
+      constructor: function(schema, channelUID, skipSync) {
+        return moduleDependencies.driver.createREF("messages_#" + channelUID, skipSync, {
           "UID": {
             type: moduleDependencies.driver.BIGINT,
             autoIncrement: true,
@@ -108,23 +107,23 @@ CModule.dependencies = {
           schema: schema
         })
       },
-    */
-      createMessage: async function(UID, payload) {
-        if (!UID || !payload || !payload.message || !payload.owner || (typeof(payload.message) != "string") || (payload.message.length <= 0)) return false
+
+      createMessage: async function(UID, channelUID, payload) {
+        if (!UID || !channelUID || !payload || !payload.message || !payload.owner || (typeof(payload.message) != "string") || (payload.message.length <= 0)) return false
         //if (!await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(payload.owner, UID)) return false
   
         await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), channelUID, true)
         const queryResult = await REF.create(payload)
         return queryResult
       },
 
-      fetchMessage: async function(UID, messageUID, userUID) {
-        if (!UID || !messageUID) return false
+      fetchMessage: async function(UID, channelUID, messageUID, userUID) {
+        if (!UID || !channelUID || !messageUID) return false
         //if (userUID && !await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
 
         await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), channelUID, true)
         const queryResult = await REF.findAll({
           where: {
             UID: messageUID
@@ -133,12 +132,12 @@ CModule.dependencies = {
         return moduleDependencies.driver.fetchSoloResult(queryResult)
       },
 
-      fetchMessages: async function(UID, refMessageUID, userUID) {
-        if (!UID) return false
+      fetchMessages: async function(UID, channelUID, refMessageUID, userUID) {
+        if (!UID || !channelUID) return false
         //if (userUID && !await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
 
         await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), channelUID, true)
         if (!refMessageUID) {
           var queryResult = await REF.findAll({
             order: [
