@@ -84,7 +84,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.personalGroup.functions.isGroupExisting(requestData.UID)) return false
+    if (!client_instance || !await databaseHandler.instances.users.dependencies.personalGroups.functions.isGroupMember(client_instance.UID, requestData.UID)) return false
 
     const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(requestData.UID, requestData.messageUID)
     if (!groupMessages) return false
@@ -97,9 +97,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   })
 
   socket.on("App:Groups:Personal:onClientSendMessage", async function(requestData) {
-    if (!requestData || !requestData.UID || !requestData.message || (typeof(requestData.message) != "string") || (requestData.message.length <= 0)) return false
     const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.personalGroup.functions.isGroupExisting(requestData.UID)) return false
+    if (!client_instance) return false
 
     const queryResult = await databaseHandler.instances.personalGroup.dependencies.messages.functions.createMessage(requestData.UID, {
       message: requestData.message,

@@ -117,15 +117,16 @@ CModule.dependencies = {
       },
 
       createMessage: async function(UID, payload) {
-        if (!UID || !payload || !payload.message || !payload.owner) return false
-
+        if (!UID || !payload || !payload.message || !payload.owner || (typeof(payload.message) != "string") || (payload.message.length <= 0)) return false
+        if (!await moduleDependencies.instances.users.dependencies.personalGroups.functions.isGroupMember(payload.owner, UID)) return false
+  
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         const queryResult = await REF.create(payload)
         return queryResult
       },
 
-      fetchMessage: async function(UID, messageUID) {
+      fetchMessage: async function(UID, messageUID, userUID) {
         if (!UID || !messageUID) return false
 
         await CModule.isModuleLoaded
@@ -138,7 +139,7 @@ CModule.dependencies = {
         return moduleDependencies.driver.fetchSoloResult(queryResult)
       },
 
-      fetchMessages: async function(UID, refMessageUID) {
+      fetchMessages: async function(UID, refMessageUID, userUID) {
         if (!UID) return false
 
         await CModule.isModuleLoaded

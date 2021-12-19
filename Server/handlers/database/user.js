@@ -293,6 +293,24 @@ CModule.dependencies = {
     }
   },
 
+  personalGroups: {
+    functions: {
+      isGroupMember: async function(UID, groupUID) {
+        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.personalGroups.functions.isGroupExisting(groupUID)) return false
+
+        await CModule.isModuleLoaded
+        const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        var queryResult = await REF.findAll({
+          where: {
+            type: "friends",
+            group: groupUID
+          }
+        })
+        return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
+      }
+    }
+  },
+
   /*
   serverGroups: {
     functions: {
