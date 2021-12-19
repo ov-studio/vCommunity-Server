@@ -282,7 +282,7 @@ CModule.dependencies = {
   personalGroups: {
     functions: {
       fetchGroup: async function(UID, groupUID) {
-        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.personalGroups.functions.isGroupExisting(groupUID)) return false
+        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.personalGroup.functions.isGroupExisting(groupUID)) return false
 
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
