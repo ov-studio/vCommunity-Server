@@ -293,7 +293,12 @@ CModule.dependencies = {
           }
         })
         queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-        if (queryResult) return {UID: queryResult.group, participantUID: queryResult.UID}
+        if (queryResult) {
+          return {
+            UID: queryResult.group,
+            participantUID: queryResult.UID
+          }
+        }
         else return false
       },
 
@@ -340,7 +345,12 @@ CModule.dependencies = {
           }
         })
         queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-        if (queryResult) return {UID: queryResult.group}
+        if (queryResult) {
+          return {
+            UID: queryResult.group,
+            name: queryResult.name
+          }
+        }
         else return false
       },
 
@@ -355,7 +365,8 @@ CModule.dependencies = {
           const groupData = queryResult[groupIndex]
           if (await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupData.group)) {
             fetchedGroups.push({
-              UID: groupData.group
+              UID: groupData.group,
+              name: groupData.name
             })
           }
         }
