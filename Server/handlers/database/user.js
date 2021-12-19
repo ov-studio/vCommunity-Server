@@ -363,20 +363,8 @@ CModule.dependencies = {
       },
 
       /*
-      isGroupMember: async function(UID, groupUID) {
-        if (!await CModule.functions.isUserExisting(UID)) return false
-
-        const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = await REF.findAll({
-          where: {
-            group: groupUID
-          }
-        })
-        return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
-      },
-
       joinGroup: async function(UID, groupUID) {
-        if (await CModule.dependencies.serverGroups.functions.isGroupMember(UID, groupUID)) return false
+        if (await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.create({
@@ -386,7 +374,7 @@ CModule.dependencies = {
       },
 
       leaveGroup: async function(UID, groupUID) {
-        if (!await CModule.dependencies.serverGroups.functions.isGroupMember(UID, groupUID)) return false
+        if (!await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.destroy({
