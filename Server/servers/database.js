@@ -37,7 +37,7 @@ databaseDriver.destroySchema = function(schema) {
   return databaseServer.dropSchema(schema, {cascade: true})
 }
 databaseDriver.fetchSoloResult = function(queryResult) {
-  return (queryResult && (queryResult.length > 0) && queryResult[0]) || false
+  return (queryResult && queryResult[0]) || false
 }
 
 module.exports = {

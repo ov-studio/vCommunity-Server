@@ -165,13 +165,11 @@ CModule.dependencies = {
           return queryResult || false
         }
         var queryResult = await REF.findAll()
-        if (moduleDependencies.driver.fetchSoloResult(queryResult)) {
-          queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
-            const _type = contactData.type
-            delete contactData.type
-            return _type
-          })
-        }
+        queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
+          const _type = contactData.type
+          delete contactData.type
+          return _type
+        })
         const fetchedContacts = {}
         CModule.dependencies.contacts.types.forEach(function(contactInstance) {
           fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
