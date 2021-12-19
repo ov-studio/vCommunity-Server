@@ -24,7 +24,7 @@ const instanceHandler = require("../instance")
 
 async function getUserGroups(UID, socket) {
   UID = UID || instanceHandler.getInstancesBySocket(socket, true)
-  return databaseHandler.instances.user.dependencies.servers.functions.fetchGroups(UID)
+  return databaseHandler.instances.user.dependencies.serverGroups.functions.fetchGroups(UID)
 }
 
 // TODO: ALLOW UNFORCED SYNC (DELETE GROUP WHICH ISN'T NEEDED ANYMORE INSTEAD OF FORCE RESETTING EVERYTHING)
@@ -49,12 +49,15 @@ async function syncUserGroups(UID, socket, syncInstances) {
     else fetchedInstances = {[(socket.id)]: socket}
   }
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
+    clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
+    console.log("FETCHED SERVERS: ")
+    console.log(fetchedGroups)
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)
-      clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
       clientInstance[1].join(groupRoom)
     })
-  })/*
+  })
+  /*
   fetchedGroups.forEach(async function(groupData) {
     const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", groupData.UID))
     if (groupMessages) {
@@ -82,26 +85,29 @@ module.exports = {
 ----------------------------*/
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
-  // TODO: ..
-  socket.on("App:Group:Server:onClientCreateGroup", async function(requestData) {
+  socket.on("App:Groups:Server:onClientCreateGroup", async function(requestData) {
+    console.log(requestData)
     if (!requestData) return false
-    const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID)) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance) return false
 
     const groupUID = await databaseHandler.instances.serverGroup.functions.constructor({
       name: requestData.name,
-      owner: client_instance.UID
+      owner: socketInstance.UID
     })
     if (!groupUID) return false
-    await databaseHandler.instances.user.dependencies.servers.functions.joinGroup(client_instance.UID, groupUID)
+    console.log("CREATED SERVER")
+    console.log(groupUID)
+    //await databaseHandler.instances.user.dependencies.serverGroups.functions.joinGroup(socketInstance.UID, groupUID)
     eventServer.emit("App:Groups:Server:onSync", UID, null, true)
     return true
   })
+
   /*
   socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
-    const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance || !await databaseHandler.instances.user.functions.isUserExisting(socketInstance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
 
     const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", requestData.UID), requestData.messageUID)
     if (!groupMessages) return false
@@ -115,12 +121,12 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
 
   socket.on("App:Groups:Personal:onClientSendMessage", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.message || (typeof(requestData.message) != "string") || (requestData.message.length <= 0)) return false
-    const client_instance = instanceHandler.getInstancesBySocket(this)
-    if (!client_instance || !await databaseHandler.instances.user.functions.isUserExisting(client_instance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance || !await databaseHandler.instances.user.functions.isUserExisting(socketInstance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
 
     const queryResult = await databaseHandler.instances.serverGroup.dependencies.messages.functions.createMessage(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", requestData.UID), {
       message: requestData.message,
-      owner: client_instance.UID
+      owner: socketInstance.UID
     })
     if (!queryResult) return false
     const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(requestData.UID)

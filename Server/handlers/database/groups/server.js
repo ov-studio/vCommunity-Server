@@ -15,7 +15,8 @@
 const moduleName = "serverGroup", moduleDependencies = {}
 const CModule = {
   REF: "server_groups",
-  prefix: "srvrgrp"
+  prefix: "srvrgrp",
+  serverLimit: 10 //TODO: INTEGRATE SOON
 }
 
 
@@ -29,8 +30,21 @@ CModule.functions = {
     if (!await moduleDependencies.instances.user.functions.isUserExisting(payload.owner)) return false
 
     await CModule.isModuleLoaded
+    var generatedToken = false
+    do {
+      const cToken = moduleDependencies.driver.createToken()
+      const queryResult = await CModule.REF.findAll({
+        where: {
+          REF: cToken
+        }
+      })
+      if (!moduleDependencies.driver.fetchSoloResult(queryResult)) generatedToken = cToken
+    } while (!generatedToken)
+
+    payload.REF = generatedToken
     try {
-      var queryResult = (await CModule.REF.create(payload)).get({raw: true})  
+      var queryResult = (await CModule.REF.create(payload)).get({raw: true})
+      await moduleDependencies.instances.user.dependencies.serverGroups.functions.joinGroup(queryResult.owner, queryResult.UID)
     } catch(error) {
       return false
     }
