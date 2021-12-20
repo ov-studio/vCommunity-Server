@@ -16,7 +16,7 @@ const moduleName = "serverGroup", moduleDependencies = {}
 const CModule = {
   REF: "server_groups",
   prefix: "srvrgrp",
-  serverLimit: 10 //TODO: INTEGRATE SOON
+  serverThreshold: 10
 }
 
 
@@ -27,9 +27,11 @@ const CModule = {
 CModule.functions = {
   constructor: async function(payload) {
     if (!payload.name || !payload.owner || (typeof(payload.name) != "string") || (payload.name.length <= 0)) return false
-    if (!await moduleDependencies.instances.user.functions.isUserExisting(payload.owner)) return false
 
     await CModule.isModuleLoaded
+    const fetchedGroups = await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroups(payload.owner)
+    if (!fetchedGroups || (fetchedGroups.length >= CModule.serverThreshold)) return false
+
     var generatedToken = false
     do {
       const cToken = moduleDependencies.driver.createToken()
