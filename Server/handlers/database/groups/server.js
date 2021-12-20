@@ -101,6 +101,48 @@ CModule.functions = {
 -------------------------*/
 
 CModule.dependencies = {
+  channels: {
+    functions: {
+      constructor: function(schema, skipSync) {
+        return moduleDependencies.driver.createREF("channels", skipSync, {
+          "UID": {
+            type: moduleDependencies.driver.BIGINT,
+            autoIncrement: true,
+            primaryKey: true
+          },
+          "name": {
+            type: moduleDependencies.driver.TEXT,
+            allowNull: false
+          },
+          "description": {
+            type: moduleDependencies.driver.TEXT,
+            allowNull: true
+          },
+          "category": {
+            type: moduleDependencies.driver.TEXT,
+            allowNull: true
+          }
+        }, {
+          schema: schema
+        })
+      },
+
+      createChannel: async function(UID, payload, userUID) {
+        if (!payload || !payload.name || (typeof(payload.name) != "string") || (payload.name.length <= 0)) return false
+        if (userUID) {
+          if (!await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
+        } else {
+          if (!await CModule.functions.isGroupExisting(UID)) return false
+        }
+
+        await CModule.isModuleLoaded
+        const REF = await CModule.dependencies.channels.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const queryResult = await REF.create(payload)
+        return queryResult.UID
+      }
+    }
+  },
+
   messages: {
     disableAutoSync: false,
     syncRate: 500,
@@ -127,7 +169,7 @@ CModule.dependencies = {
 
       createMessage: async function(UID, channelUID, payload) {
         if (!UID || !channelUID || !payload || !payload.message || !payload.owner || (typeof(payload.message) != "string") || (payload.message.length <= 0)) return false
-        //if (!await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(payload.owner, UID)) return false
+        if (!await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(payload.owner, UID)) return false
   
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), channelUID, true)
@@ -136,8 +178,12 @@ CModule.dependencies = {
       },
 
       fetchMessage: async function(UID, channelUID, messageUID, userUID) {
-        if (!UID || !channelUID || !messageUID) return false
-        //if (userUID && !await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
+        if (!UID || !channelUID || !messageUID) return 
+        if (userUID) {
+          if (!await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
+        } else {
+          if (!await CModule.functions.isGroupExisting(UID)) return false
+        }
 
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), channelUID, true)
@@ -151,7 +197,11 @@ CModule.dependencies = {
 
       fetchMessages: async function(UID, channelUID, refMessageUID, userUID) {
         if (!UID || !channelUID) return false
-        //if (userUID && !await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
+        if (userUID) {
+          if (!await moduleDependencies.instances.user.dependencies.serverGroups.functions.fetchGroup(userUID, UID)) return false
+        } else {
+          if (!await CModule.functions.isGroupExisting(UID)) return false
+        }
 
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), channelUID, true)
