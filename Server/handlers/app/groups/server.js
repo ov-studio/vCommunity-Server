@@ -16,6 +16,7 @@ const socketServer = require("../../../servers/socket")
 const eventServer = require("../../../servers/event")
 const databaseHandler = require("../../database/loader")
 const instanceHandler = require("../instance")
+const socketRooms = {}
 
 
 /*------------
@@ -27,10 +28,10 @@ async function getUserGroups(UID, socket) {
   return databaseHandler.instances.user.dependencies.serverGroups.functions.fetchGroups(UID)
 }
 
-// TODO: ALLOW UNFORCED SYNC (DELETE GROUP WHICH ISN'T NEEDED ANYMORE INSTEAD OF FORCE RESETTING EVERYTHING)
 async function syncUserGroups(UID, socket, syncInstances) {
   if (!UID && !socket) return false
-  let fetchedInstances = null
+
+  var fetchedInstances = null
   if (!UID) {
     const socketInstance = instanceHandler.getInstancesBySocket(socket)
     if (socketInstance) {
@@ -44,26 +45,49 @@ async function syncUserGroups(UID, socket, syncInstances) {
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
 
-  console.log("FETCHED Servers: ")
-  console.log(fetchedGroups)
   if (!syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
+
+  var reSyncGroups = []
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
-    clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
-    fetchedGroups.forEach(function(groupData) {
-      const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)
-      clientInstance[1].join(groupRoom)
+    const socketID = clientInstance[1].id
+    if (!socketRooms[socketID]) socketRooms[socketID] = {}
+    Object.keys(socketRooms[socketID]).forEach(function(groupUID) {
+      let isGroupMember = false
+      for (const groupIndex in fetchedGroups) {
+        const groupData = fetchedGroups[groupIndex]
+        if (groupUID == groupData.UID) {
+          isGroupMember = true
+          break
+        }
+      }
+      if (!isGroupMember) {
+        delete socketRooms[socketID][groupUID]
+        const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupUID)
+        clientInstance[1].leave(groupRoom)
+      }
     })
+    for (const groupIndex in fetchedGroups) {
+      const groupData = fetchedGroups[groupIndex]
+      if (!socketRooms[socketID][(groupData.UID)]) {
+        reSyncGroups.push(groupData.UID)
+        socketRooms[socketID][(groupData.UID)] = true
+        const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)
+        clientInstance[1].join(groupRoom)
+      }
+    }
+    clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
   })
+
   /*
-  fetchedGroups.forEach(async function(groupData) {
-    const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getDependencyREF("messages", groupData.UID))
+  reSyncGroups.forEach(async function(groupUID) {
+    const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(groupUID)
     if (groupMessages) {
       Object.entries(fetchedInstances).forEach(function(clientInstance) {
         clientInstance[1].emit("App:Groups:Server:onSyncMessages", {
-          UID: groupData.UID,
+          UID: groupUID,
           messages: groupMessages
         })
       }) 
@@ -80,9 +104,9 @@ module.exports = {
 }
 
 
-/*----------------------------
--- Event: On Client Connect --
-----------------------------*/
+/*----------------------------------------
+-- Events: On Client Connect/Disconnect --
+----------------------------------------*/
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Groups:Server:onClientCreateGroup", async function(requestData) {
@@ -133,4 +157,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
   */
+})
+
+eventServer.on("App:onClientDisconnect", async function(UID) {
+  delete socketRooms[UID]
 })
