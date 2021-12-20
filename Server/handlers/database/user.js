@@ -346,10 +346,8 @@ CModule.dependencies = {
         })
         queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
         if (queryResult) {
-          return {
-            UID: queryResult.group,
-            name: queryResult.name
-          }
+          const groupData = await moduleDependencies.instances.serverGroup.functions.isGroupExisting(queryResult.group, true)
+          return groupData
         }
         else return false
       },
@@ -362,13 +360,8 @@ CModule.dependencies = {
         const queryResult = await REF.findAll()
         const fetchedGroups = []
         for (const groupIndex in queryResult) {
-          const groupData = queryResult[groupIndex]
-          if (await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupData.group)) {
-            fetchedGroups.push({
-              UID: groupData.group,
-              name: groupData.name
-            })
-          }
+          const groupData = await moduleDependencies.instances.serverGroup.functions.isGroupExisting(queryResult[groupIndex].group, true)
+          if (groupData) fetchedGroups.push(groupData)
         }
         return fetchedGroups
       },

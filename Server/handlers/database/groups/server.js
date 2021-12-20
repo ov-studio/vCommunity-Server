@@ -80,7 +80,7 @@ CModule.functions = {
     return CModule.prefix + "_" + UID
   },
 
-  isGroupExisting: async function(UID) {
+  isGroupExisting: async function(UID, fetchData) {
     if (!UID) return false
 
     const queryResult = await CModule.REF.findAll({
@@ -88,7 +88,8 @@ CModule.functions = {
         UID: UID
       }
     })
-    return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
+    if (fetchData) return moduleDependencies.driver.fetchSoloResult(queryResult)
+    else return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
   }
 }
 
