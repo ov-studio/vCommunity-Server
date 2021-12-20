@@ -141,6 +141,28 @@ CModule.dependencies = {
         if (!queryResult) return false
         await CModule.dependencies.message.functions.constructor(CModule.functions.getInstanceSchema(UID), queryResult.UID, false)
         return queryResult.UID
+      },
+
+      fetchChannel: async function(UID, channelUID) {
+        if (!UID || !channelUID || !await CModule.functions.isGroupExisting(UID)) return false
+
+        await CModule.isModuleLoaded
+        const REF = await CModule.dependencies.channels.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const queryResult = await REF.findAll({
+          where: {
+            UID: channelUID
+          }
+        })
+        return moduleDependencies.driver.fetchSoloResult(queryResult)
+      },
+
+      fetchChannels: async function(UID) {
+        if (!UID || !await CModule.functions.isGroupExisting(UID)) return false
+
+        await CModule.isModuleLoaded
+        const REF = await CModule.dependencies.channels.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+        const queryResult = await REF.findAll()
+        return queryResult
       }
     }
   },

@@ -49,9 +49,11 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
+  fetchedInstances = Object.entries(fetchedInstances)
 
   var reSyncGroups = []
-  Object.entries(fetchedInstances).forEach(function(clientInstance) {
+  for (const instanceIndex in fetchedInstances) {
+    clientInstance = fetchedInstances[instanceIndex]
     const socketID = clientInstance[1].id
     if (!socketRooms[socketID]) socketRooms[socketID] = {}
     Object.keys(socketRooms[socketID]).forEach(function(groupUID) {
@@ -71,6 +73,8 @@ async function syncUserGroups(UID, socket, syncInstances) {
     })
     for (const groupIndex in fetchedGroups) {
       const groupData = fetchedGroups[groupIndex]
+      const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(groupData.UID)
+      console.log(groupChannels)
       if (!socketRooms[socketID][(groupData.UID)]) {
         reSyncGroups.push(groupData.UID)
         socketRooms[socketID][(groupData.UID)] = true
@@ -79,7 +83,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
       }
     }
     clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
-  })
+  }
 
   /*
   reSyncGroups.forEach(async function(groupUID) {

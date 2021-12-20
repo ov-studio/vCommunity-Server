@@ -130,7 +130,11 @@ CModule.dependencies = {
 
       fetchMessage: async function(UID, messageUID, userUID) {
         if (!UID || !messageUID) return false
-        if (userUID && !await moduleDependencies.instances.user.dependencies.personalGroups.functions.fetchGroup(userUID, UID)) return false
+        if (userUID) {
+          if (!await moduleDependencies.instances.user.dependencies.personalGroups.functions.fetchGroup(userUID, UID)) return false
+        } else {
+          if (!await CModule.functions.isGroupExisting(UID)) return false
+        }
 
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
@@ -144,7 +148,11 @@ CModule.dependencies = {
 
       fetchMessages: async function(UID, refMessageUID, userUID) {
         if (!UID) return false
-        if (userUID && !await moduleDependencies.instances.user.dependencies.personalGroups.functions.fetchGroup(userUID, UID)) return false
+        if (userUID) {
+          if (!await moduleDependencies.instances.user.dependencies.personalGroups.functions.fetchGroup(userUID, UID)) return false
+        } else {
+          if (!await CModule.functions.isGroupExisting(UID)) return false
+        }
 
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
