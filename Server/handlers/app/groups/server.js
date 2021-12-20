@@ -44,7 +44,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
   const fetchedGroups = await getUserGroups(UID)
   if (!fetchedGroups) return false
 
-  console.log("FETCHED GROUPS: ")
+  console.log("FETCHED Servers: ")
   console.log(fetchedGroups)
   if (!syncInstances) {
     if (!socket) return false
@@ -52,8 +52,6 @@ async function syncUserGroups(UID, socket, syncInstances) {
   }
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
-    console.log("FETCHED SERVERS: ")
-    console.log(fetchedGroups)
     fetchedGroups.forEach(function(groupData) {
       const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(groupData.UID)
       clientInstance[1].join(groupRoom)
@@ -88,7 +86,6 @@ module.exports = {
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Groups:Server:onClientCreateGroup", async function(requestData) {
-    console.log(requestData)
     if (!requestData) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
     if (!socketInstance) return false

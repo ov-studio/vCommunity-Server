@@ -102,9 +102,9 @@ module.exports = {
 }
 
 
-/*----------------------------
--- Event: On Client Connect --
-----------------------------*/
+/*----------------------------------------
+-- Events: On Client Connect/Disconnect --
+----------------------------------------*/
 
 eventServer.on("App:onClientConnect", function(socket, UID) {
   socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
@@ -139,4 +139,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     })
     return true
   })
+})
+
+eventServer.on("App:onClientDisconnect", async function(UID) {
+  delete socketRooms[UID]
 })

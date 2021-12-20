@@ -21,9 +21,9 @@ const personalGroupHandler = require("./groups/personal")
 const serverGroupHandler = require("./groups/server")
 
 
-/*----------------------------
--- Event: On Client Connect --
-----------------------------*/
+/*----------------------------------------
+-- Events: On Client Connect/Disconnect --
+----------------------------------------*/
 
 eventServer.on("App:onClientConnect", async function(socket, UID) {
   const userRoom = databaseHandler.instances.user.functions.getRoomREF(UID)
