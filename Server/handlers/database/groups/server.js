@@ -146,10 +146,12 @@ CModule.dependencies = {
   },
 
   messages: {
-    disableAutoSync: false,
+    disableAutoSync: true,
     syncRate: 500,
     functions: {
       constructor: function(schema, channelUID, skipSync) {
+        if (!channelUID) return false
+
         return moduleDependencies.driver.createREF("messages_#" + channelUID, skipSync, {
           "UID": {
             type: moduleDependencies.driver.BIGINT,
