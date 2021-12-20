@@ -16,6 +16,7 @@ const socketServer = require("../../../servers/socket")
 const eventServer = require("../../../servers/event")
 const databaseHandler = require("../../database/loader")
 const instanceHandler = require("../instance")
+const socketRooms = {}
 
 
 /*------------
@@ -49,13 +50,35 @@ async function syncUserGroups(UID, socket, syncInstances) {
     else fetchedInstances = {[(socket.id)]: socket}
   }
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
-    clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
-    fetchedGroups.forEach(function(groupData) {
-      const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupData.UID)
-      // TODO: DISCONNECT INSTANCE FROM KICKED GROUP SOMEHOW
-      clientInstance[1].join(groupRoom)
+    const socketID = clientInstance[1].id
+    if (!socketRooms[socketID]) socketRooms[socketID] = {}
+
+    Object.keys(socketRooms[socketID]).forEach(function(groupUID) {
+      let isGroupMember = false
+      for (const groupIndex in fetchedGroups) {
+        const groupData = fetchedGroups[groupIndex]
+        if (groupUID == groupData.UID) {
+          isGroupMember = true
+          break
+        }
+      }
+      if (!isGroupMember) {
+        delete socketRooms[socketID][groupUID]
+        const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupUID)
+        clientInstance[1].leave(groupRoom)
+      }
     })
+    for (const groupIndex in fetchedGroups) {
+      const groupData = fetchedGroups[groupIndex]
+      if (!socketRooms[socketID][(groupData.UID)]) {
+        socketRooms[socketID][(groupData.UID)] = true
+        const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupData.UID)
+        clientInstance[1].join(groupRoom)
+      }
+    }
+    clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
   })
+
   fetchedGroups.forEach(async function(groupData) {
     const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(groupData.UID)
     if (groupMessages) {
