@@ -371,7 +371,7 @@ CModule.dependencies = {
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.create({
-          group: groupUID,
+          group: groupUID
         })
         return true
       },
