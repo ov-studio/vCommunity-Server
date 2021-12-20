@@ -49,10 +49,11 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
+
+  var reSyncGroups = []
   Object.entries(fetchedInstances).forEach(function(clientInstance) {
     const socketID = clientInstance[1].id
     if (!socketRooms[socketID]) socketRooms[socketID] = {}
-
     Object.keys(socketRooms[socketID]).forEach(function(groupUID) {
       let isGroupMember = false
       for (const groupIndex in fetchedGroups) {
@@ -71,6 +72,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
     for (const groupIndex in fetchedGroups) {
       const groupData = fetchedGroups[groupIndex]
       if (!socketRooms[socketID][(groupData.UID)]) {
+        reSyncGroups.push(groupData.UID)
         socketRooms[socketID][(groupData.UID)] = true
         const groupRoom = databaseHandler.instances.personalGroup.functions.getRoomREF(groupData.UID)
         clientInstance[1].join(groupRoom)
@@ -79,12 +81,12 @@ async function syncUserGroups(UID, socket, syncInstances) {
     clientInstance[1].emit("App:Groups:Personal:onSync", fetchedGroups)
   })
 
-  fetchedGroups.forEach(async function(groupData) {
-    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(groupData.UID)
+  reSyncGroups.forEach(async function(groupUID) {
+    const groupMessages = await databaseHandler.instances.personalGroup.dependencies.messages.functions.fetchMessages(groupUID)
     if (groupMessages) {
       Object.entries(fetchedInstances).forEach(function(clientInstance) {
         clientInstance[1].emit("App:Groups:Personal:onSyncMessages", {
-          UID: groupData.UID,
+          UID: groupUID,
           messages: groupMessages
         })
       }) 
