@@ -144,7 +144,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     if (!channelUID) return false
     const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(requestData.UID)
     const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(requestData.UID)
-    socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncChannels", {
+    socketServer.of("/app").to(groupRoom).emit("App:Groups:Server:onSyncChannels", {
       UID: requestData.UID,
       channels: groupChannels
     })
@@ -152,14 +152,14 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   })
 
   /*
-  socket.on("App:Groups:Personal:onClientFetchMessages", async function(requestData) {
+  socket.on("App:Groups:Server:onClientFetchMessages", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.messageUID) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
     if (!socketInstance || !await databaseHandler.instances.user.functions.isUserExisting(socketInstance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
 
     const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getInstanceSchema("messages", requestData.UID), requestData.messageUID)
     if (!groupMessages) return false
-    this.emit("App:Groups:Personal:onSyncMessages", {
+    this.emit("App:Groups:Server:onSyncMessages", {
       UID: requestData.UID,
       messages: groupMessages,
       isPostLoad: true
