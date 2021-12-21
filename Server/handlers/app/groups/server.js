@@ -83,21 +83,19 @@ async function syncUserGroups(UID, socket, syncInstances) {
 
   reSyncGroups.forEach(async function(groupUID) {
     const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(groupUID)
-    if (groupChannels) {
-      const groupMessages = {}
-      for (const channelIndex in groupChannels) {
-        const channelUID = groupChannels[channelIndex].UID
-        //groupMessages[channelUID] = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchChannels(groupUID, channelUID)
-      }
-      console.log("SERVER CHANNELS: ")
-      console.log(groupChannels)
-      Object.entries(fetchedInstances).forEach(function(clientInstance) {
-        clientInstance[1].emit("App:Groups:Server:onSyncChannels", {
-          UID: groupUID,
-          channels: groupChannels
-        })
-      })
+    const groupMessages = {}
+    for (const channelIndex in groupChannels) {
+      const channelUID = groupChannels[channelIndex].UID
+      //groupMessages[channelUID] = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchChannels(groupUID, channelUID)
     }
+    console.log("SERVER CHANNELS: ")
+    console.log(groupChannels)
+    Object.entries(fetchedInstances).forEach(function(clientInstance) {
+      clientInstance[1].emit("App:Groups:Server:onSyncChannels", {
+        UID: groupUID,
+        channels: groupChannels
+      })
+    })
     /*
     const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(groupUID)
     if (groupMessages) {
@@ -136,6 +134,24 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     })
     if (!groupUID) return false
     eventServer.emit("App:Groups:Server:onSync", UID, null, true)
+    return true
+  })
+
+  socket.on("App:Groups:Server:onClientCreateChannel", async function(requestData) {
+    if (!requestData) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance) return false
+
+    const channelUID = await databaseHandler.instances.serverGroup.dependencies.channels.functions.createChannel(requestData.UID, {
+      name: requestData.name
+    })
+    if (!channelUID) return false
+    const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(requestData.UID)
+    const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(requestData.UID)
+    socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncChannels", {
+      UID: groupUID,
+      channels: groupChannels
+    })
     return true
   })
 

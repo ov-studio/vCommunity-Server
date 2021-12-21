@@ -139,7 +139,7 @@ CModule.dependencies = {
         const REF = await CModule.dependencies.channels.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         const queryResult = await REF.create(payload)
         if (!queryResult) return false
-        await CModule.dependencies.message.functions.constructor(CModule.functions.getInstanceSchema(UID), queryResult.UID, false)
+        await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), queryResult.UID, false)
         return queryResult.UID
       },
 
