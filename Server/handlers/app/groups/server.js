@@ -49,11 +49,9 @@ async function syncUserGroups(UID, socket, syncInstances) {
     if (!socket) return false
     else fetchedInstances = {[(socket.id)]: socket}
   }
-  fetchedInstances = Object.entries(fetchedInstances)
 
   var reSyncGroups = []
-  for (const instanceIndex in fetchedInstances) {
-    clientInstance = fetchedInstances[instanceIndex]
+  Object.entries(fetchedInstances).forEach(function(clientInstance) {
     const socketID = clientInstance[1].id
     if (!socketRooms[socketID]) socketRooms[socketID] = {}
     Object.keys(socketRooms[socketID]).forEach(function(groupUID) {
@@ -73,8 +71,6 @@ async function syncUserGroups(UID, socket, syncInstances) {
     })
     for (const groupIndex in fetchedGroups) {
       const groupData = fetchedGroups[groupIndex]
-      const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(groupData.UID)
-      console.log(groupChannels)
       if (!socketRooms[socketID][(groupData.UID)]) {
         reSyncGroups.push(groupData.UID)
         socketRooms[socketID][(groupData.UID)] = true
@@ -83,10 +79,26 @@ async function syncUserGroups(UID, socket, syncInstances) {
       }
     }
     clientInstance[1].emit("App:Groups:Server:onSync", fetchedGroups)
-  }
+  })
 
-  /*
   reSyncGroups.forEach(async function(groupUID) {
+    const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(groupUID)
+    if (groupChannels) {
+      const groupMessages = {}
+      for (const channelIndex in groupChannels) {
+        const channelUID = groupChannels[channelIndex].UID
+        //groupMessages[channelUID] = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchChannels(groupUID, channelUID)
+      }
+      console.log("SERVER CHANNELS: ")
+      console.log(groupChannels)
+      Object.entries(fetchedInstances).forEach(function(clientInstance) {
+        clientInstance[1].emit("App:Groups:Server:onSyncChannels", {
+          UID: groupUID,
+          channels: groupChannels
+        })
+      })
+    }
+    /*
     const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(groupUID)
     if (groupMessages) {
       Object.entries(fetchedInstances).forEach(function(clientInstance) {
@@ -96,8 +108,8 @@ async function syncUserGroups(UID, socket, syncInstances) {
         })
       }) 
     }
+    */
   })
-  */
   return true
 }
 eventServer.on("App:Groups:Server:onSync", syncUserGroups)
