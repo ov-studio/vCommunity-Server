@@ -145,7 +145,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     const groupChannels = await databaseHandler.instances.serverGroup.dependencies.channels.functions.fetchChannels(requestData.UID)
     const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(requestData.UID)
     socketServer.of("/app").to(groupRoom).emit("App:Groups:Personal:onSyncChannels", {
-      UID: groupUID,
+      UID: requestData.UID,
       channels: groupChannels
     })
     return true
