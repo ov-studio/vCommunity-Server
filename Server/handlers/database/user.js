@@ -366,8 +366,16 @@ CModule.dependencies = {
         return fetchedGroups
       },
 
-      joinGroup: async function(UID, groupUID) {
-        if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID) || await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
+      joinGroup: async function(UID, groupUID, groupREF) {
+        if (!await CModule.functions.isUserExisting(UID)) return false
+        if (groupUID) {
+            if (!await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID)) return false
+        } else {
+          const queryResult = await moduleDependencies.instances.serverGroup.functions.isGroupREFValid(groupREF, true)
+          if (!queryResult) return false
+          groupUID = queryResult.UID
+        }
+        if (await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
         const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
         await REF.create({

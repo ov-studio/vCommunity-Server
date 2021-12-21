@@ -92,6 +92,18 @@ CModule.functions = {
     })
     if (fetchData) return moduleDependencies.driver.fetchSoloResult(queryResult)
     else return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
+  },
+
+  isGroupREFValid: async function(REF, fetchData) {
+    if (!REF) return false
+
+    const queryResult = await CModule.REF.findAll({
+      where: {
+        REF: REF
+      }
+    })
+    if (fetchData) return moduleDependencies.driver.fetchSoloResult(queryResult)
+    else return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
   }
 }
 

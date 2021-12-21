@@ -133,6 +133,17 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
 
+  socket.on("App:Groups:Server:onClientJoinGroup", async function(requestData) {
+    if (!requestData) return false
+    const socketInstance = instanceHandler.getInstancesBySocket(this)
+    if (!socketInstance) return false
+
+    const queryResult = await databaseHandler.instances.user.dependencies.serverGroups.functions.joinGroup(socketInstance.UID, null, requestData.REF)
+    if (!queryResult) return false
+    eventServer.emit("App:Groups:Server:onSync", UID, null, true)
+    return true
+  })
+
   socket.on("App:Groups:Server:onClientCreateChannel", async function(requestData) {
     if (!requestData) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
