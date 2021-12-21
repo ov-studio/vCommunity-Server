@@ -41,7 +41,7 @@ CModule.functions = {
     try {
       queryResult = (await CModule.REF.create({
         REF: groupRefs[0]
-      })).get({raw: true})  
+      })).get({raw: true})
     } catch(error) {
       return false
     }
@@ -124,7 +124,7 @@ CModule.dependencies = {
   
         await CModule.isModuleLoaded
         const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = await REF.create(payload)
+        const queryResult = (await REF.create(payload)).get({raw: true})
         return queryResult
       },
 
