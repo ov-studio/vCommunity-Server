@@ -89,7 +89,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
           UID: groupUID,
           messages: groupMessages
         })
-      }) 
+      })
     }
   })
   return true
