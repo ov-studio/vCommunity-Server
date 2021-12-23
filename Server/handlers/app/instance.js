@@ -31,7 +31,7 @@ exports.getInstancesBySocket = function(socket, fetchOnlyUID) {
   const UID = socketInstances[(socket.id)]
   if (!UID) return false
 
-  const cInstances = getInstancesByUID(UID)
+  const cInstances = exports.getInstancesByUID(UID)
   if (!cInstances) return false
   if (fetchOnlyUID) return UID
   return {UID: UID, instances: cInstances}
