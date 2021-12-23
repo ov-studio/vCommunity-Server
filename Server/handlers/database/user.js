@@ -36,32 +36,36 @@ CModule.functions = {
     if (!payload.UID || !payload.username || !payload.DOB) return false
     if (await CModule.functions.isUsernameExisting(payload.username)) return {status: "auth/username-already-exists"}
 
-    await CModule.isModuleLoaded
     try {
-      (await CModule.REF.create(payload))
+      await CModule.isModuleLoaded
+      await CModule.REF.create(payload)
+      const dependencies = Object.entries(CModule.dependencies)
+      for (const dependency in dependencies) {
+        if (dependencies[dependency][1].functions && !dependencies[dependency][1].disableAutoSync && dependencies[dependency][1].functions.constructor) {
+          await dependencies[dependency][1].functions.constructor(CModule.functions.getInstanceSchema(payload.UID), false)
+        }
+      }
+      return {success: true, status: "auth/successful"}
     } catch(error) {
       return {status: "auth/failed"}
     }
-    const dependencies = Object.entries(CModule.dependencies)
-    for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && !dependencies[dependency][1].disableAutoSync && dependencies[dependency][1].functions.constructor) {
-        await dependencies[dependency][1].functions.constructor(CModule.functions.getInstanceSchema(payload.UID), false)
-      }
-    }
-    return {success: true, status: "auth/successful"}
   },
 
   destructor: async function(UID) {
     if (!await CModule.functions.isUserExisting(UID)) return false
 
-    await CModule.isModuleLoaded
-    await CModule.REF.destroy({
-      where: {
-        UID: UID
-      }
-    })
-    await moduleDependencies.driver.destroySchema(CModule.functions.getInstanceSchema(UID))
-    return true
+    try {
+      await CModule.isModuleLoaded
+      await CModule.REF.destroy({
+        where: {
+          UID: UID
+        }
+      })
+      await moduleDependencies.driver.destroySchema(CModule.functions.getInstanceSchema(UID))
+      return true
+    } catch(error) {
+      return false
+    }
   },
 
   getInstanceSchema: function(UID) {
@@ -77,35 +81,43 @@ CModule.functions = {
   isUserExisting: async function(UID, fetchData, fetchPassword) {
     if (!UID) return false
 
-    await CModule.isModuleLoaded
-    var queryResult = await CModule.REF.findAll({
-      where: {
-        UID: UID
+    try {
+      await CModule.isModuleLoaded
+      var queryResult = await CModule.REF.findAll({
+        where: {
+          UID: UID
+        }
+      })
+      queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+      if (fetchData) {
+        if (queryResult) {
+          if (!fetchPassword) delete queryResult.password
+          queryResult.isOnline = (instanceHandler.getInstancesByUID(UID) && true) || false
+        }
+        return queryResult
       }
-    })
-    queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-    if (fetchData) {
-      if (queryResult) {
-        if (!fetchPassword) delete queryResult.password
-        queryResult.isOnline = (instanceHandler.getInstancesByUID(UID) && true) || false
-      }
-      return queryResult
+      else return (queryResult && true) || false
+    } catch(error) {
+      return false
     }
-    else return (queryResult && true) || false
   },
 
   isUsernameExisting: async function(username, fetchData) {
     if (!username) return false
 
-    await CModule.isModuleLoaded
-    var queryResult = await CModule.REF.findAll({
-      where: {
-        username: username
-      }
-    })
-    queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-    if (fetchData) return queryResult
-    else return (queryResult && true) || false
+    try {
+      await CModule.isModuleLoaded
+      var queryResult = await CModule.REF.findAll({
+        where: {
+          username: username
+        }
+      })
+      queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+      if (fetchData) return queryResult
+      else return (queryResult && true) || false
+    } catch(error) {
+      return false
+    }
   }
 }
 
@@ -140,41 +152,49 @@ CModule.dependencies = {
       fetchContact: async function(UID, contactUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await CModule.functions.isUserExisting(contactUID)) return false
       
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = await REF.findAll({
-          where: {
-            UID: contactUID
-          }
-        })
-        return moduleDependencies.driver.fetchSoloResult(queryResult)
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          const queryResult = await REF.findAll({
+            where: {
+              UID: contactUID
+            }
+          })
+          return moduleDependencies.driver.fetchSoloResult(queryResult)
+        } catch(error) {
+          return false
+        }
       },
 
       fetchContacts: async function(UID, type) {
         if (!await CModule.functions.isUserExisting(UID)) return false
         if (type && (CModule.dependencies.contacts.types.indexOf(type) == -1)) return false
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        if (type) {
-          const queryResult = await REF.findAll({
-            where: {
-              type: type
-            }
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          if (type) {
+            const queryResult = await REF.findAll({
+              where: {
+                type: type
+              }
+            })
+            return queryResult || false
+          }
+          var queryResult = await REF.findAll()
+          queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
+            const _type = contactData.type
+            delete contactData.type
+            return _type
           })
-          return queryResult || false
+          const fetchedContacts = {}
+          CModule.dependencies.contacts.types.forEach(function(contactInstance) {
+            fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
+          })
+          return fetchedContacts
+        } catch(error) {
+          return false
         }
-        var queryResult = await REF.findAll()
-        queryResult = utilityHandler.lodash.groupBy(queryResult, function(contactData) {
-          const _type = contactData.type
-          delete contactData.type
-          return _type
-        })
-        const fetchedContacts = {}
-        CModule.dependencies.contacts.types.forEach(function(contactInstance) {
-          fetchedContacts[contactInstance] = (queryResult && queryResult[contactInstance]) || {}
-        })
-        return fetchedContacts
       },
 
       addContact: async function(UID, contactUID) {
@@ -187,30 +207,34 @@ CModule.dependencies = {
         })
         if (!groupUID) return false
 
-        await CModule.isModuleLoaded
-        var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        await REF.destroy({
-          where: {
-            UID: contactUID
-          }
-        })
-        await REF.create({
-          UID: contactUID,
-          type: "friends",
-          group: groupUID
-        })
-        REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
-        await REF.destroy({
-          where: {
-            UID: UID
-          }
-        })
-        await REF.create({
-          UID: UID,
-          type: "friends",
-          group: groupUID
-        })
-        return true
+        try {
+          await CModule.isModuleLoaded
+          var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          await REF.destroy({
+            where: {
+              UID: contactUID
+            }
+          })
+          await REF.create({
+            UID: contactUID,
+            type: "friends",
+            group: groupUID
+          })
+          REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+          await REF.destroy({
+            where: {
+              UID: UID
+            }
+          })
+          await REF.create({
+            UID: UID,
+            type: "friends",
+            group: groupUID
+          })
+          return true
+        } catch(error) {
+          return false
+        }
       },
 
       removeContact: async function(UID, contactUID) {
@@ -218,20 +242,24 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "friends") return false 
 
-        await CModule.isModuleLoaded
-        var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        await REF.destroy({
-          where: {
-            UID: contactUID
-          }
-        })
-        REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
-        await REF.destroy({
-          where: {
-            UID: UID
-          }
-        })
-        return true
+        try {
+          await CModule.isModuleLoaded
+          var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          await REF.destroy({
+            where: {
+              UID: contactUID
+            }
+          })
+          REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+          await REF.destroy({
+            where: {
+              UID: UID
+            }
+          })
+          return true
+        } catch(error) {
+          return false
+        }
       },
 
       blockContact: async function(UID, contactUID) {
@@ -239,27 +267,31 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type == "blocked") return false 
 
-        await CModule.isModuleLoaded
-        var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        await REF.destroy({
-          where: {
-            UID: contactUID
-          }
-        })
-        await REF.create({
-          UID: contactUID,
-          type: "blocked"
-        })
-        queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
-        if (queryResult && (queryResult.type != "blocked")) {
-          REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+        try {
+          await CModule.isModuleLoaded
+          var REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
           await REF.destroy({
             where: {
-              UID: UID
+              UID: contactUID
             }
           })
+          await REF.create({
+            UID: contactUID,
+            type: "blocked"
+          })
+          queryResult = await CModule.dependencies.contacts.functions.fetchContact(contactUID, UID)
+          if (queryResult && (queryResult.type != "blocked")) {
+            REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(contactUID), true)
+            await REF.destroy({
+              where: {
+                UID: UID
+              }
+            })
+          }
+          return true
+        } catch(error) {
+          return false
         }
-        return true
       },
 
       unblockContact: async function(UID, contactUID) {
@@ -267,14 +299,18 @@ CModule.dependencies = {
         var queryResult = await CModule.dependencies.contacts.functions.fetchContact(UID, contactUID)
         if (queryResult.type != "blocked") return false 
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        await REF.destroy({
-          where: {
-            UID: contactUID
-          }
-        })
-        return true
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          await REF.destroy({
+            where: {
+              UID: contactUID
+            }
+          })
+          return true
+        } catch(error) {
+          return false
+        }
       }
     }
   },
@@ -284,22 +320,26 @@ CModule.dependencies = {
       fetchGroup: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.personalGroup.functions.isGroupExisting(groupUID)) return false
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        var queryResult = await REF.findAll({
-          where: {
-            type: "friends",
-            group: groupUID
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.contacts.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          var queryResult = await REF.findAll({
+            where: {
+              type: "friends",
+              group: groupUID
+            }
+          })
+          queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+          if (queryResult) {
+            return {
+              UID: queryResult.group,
+              participantUID: queryResult.UID
+            }
           }
-        })
-        queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-        if (queryResult) {
-          return {
-            UID: queryResult.group,
-            participantUID: queryResult.UID
-          }
+          else return false
+        } catch(error) {
+          return false
         }
-        else return false
       },
 
       fetchGroups: async function(UID) {
@@ -337,39 +377,47 @@ CModule.dependencies = {
       fetchGroup: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID)) return false
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        var queryResult = await REF.findAll({
-          where: {
-            group: groupUID
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          var queryResult = await REF.findAll({
+            where: {
+              group: groupUID
+            }
+          })
+          queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+          if (queryResult) {
+            const groupData = await moduleDependencies.instances.serverGroup.functions.isGroupExisting(queryResult.group, true)
+            return groupData
           }
-        })
-        queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-        if (queryResult) {
-          const groupData = await moduleDependencies.instances.serverGroup.functions.isGroupExisting(queryResult.group, true)
-          return groupData
+          else return false
+        } catch(error) {
+          return false
         }
-        else return false
       },
 
       fetchGroups: async function(UID) {
         if (!await CModule.functions.isUserExisting(UID)) return false
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = await REF.findAll()
-        const fetchedGroups = []
-        for (const groupIndex in queryResult) {
-          const groupData = await moduleDependencies.instances.serverGroup.functions.isGroupExisting(queryResult[groupIndex].group, true)
-          if (groupData) fetchedGroups.push(groupData)
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          const queryResult = await REF.findAll()
+          const fetchedGroups = []
+          for (const groupIndex in queryResult) {
+            const groupData = await moduleDependencies.instances.serverGroup.functions.isGroupExisting(queryResult[groupIndex].group, true)
+            if (groupData) fetchedGroups.push(groupData)
+          }
+          return fetchedGroups
+        } catch(error) {
+          return false
         }
-        return fetchedGroups
       },
 
       joinGroup: async function(UID, groupUID, groupREF) {
         if (!await CModule.functions.isUserExisting(UID)) return false
         if (groupUID) {
-            if (!await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID)) return false
+          if (!await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID)) return false
         } else {
           const queryResult = await moduleDependencies.instances.serverGroup.functions.isGroupREFValid(groupREF, true)
           if (!queryResult) return false
@@ -377,23 +425,31 @@ CModule.dependencies = {
         }
         if (await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
-        const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        await REF.create({
-          group: groupUID
-        })
-        return true
+        try {
+          const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          await REF.create({
+            group: groupUID
+          })
+          return true
+        } catch(error) {
+          return false
+        }
       },
 
       leaveGroup: async function(UID, groupUID) {
         if (!await CModule.functions.isUserExisting(UID) || !await moduleDependencies.instances.serverGroup.functions.isGroupExisting(groupUID) || !await CModule.dependencies.serverGroups.functions.fetchGroup(UID, groupUID)) return false
 
-        const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        await REF.destroy({
-          where: {
-            group: groupUID
-          }
-        })
-        return true
+        try {
+          const REF = await CModule.dependencies.serverGroups.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          await REF.destroy({
+            where: {
+              group: groupUID
+            }
+          })
+          return true
+        } catch(error) {
+          return false
+        }
       }
     }
   }
