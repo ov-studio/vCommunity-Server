@@ -92,7 +92,6 @@ async function syncUserGroups(UID, socket, syncInstances) {
     for (const channelIndex in groupChannels) {
       const channelUID = groupChannels[channelIndex].UID
       const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(groupUID, channelUID)
-      console.log(groupMessages)
       if (groupMessages) {
         Object.entries(fetchedInstances).forEach(function(clientInstance) {
           clientInstance[1].emit("App:Groups:Server:onSyncMessages", {
@@ -189,7 +188,6 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       owner: socketInstance.UID
     })
     if (!queryResult) return false
-    console.log(queryResult)
     const groupRoom = databaseHandler.instances.serverGroup.functions.getRoomREF(requestData.UID)
     socketServer.of("/app").to(groupRoom).emit("App:Groups:Server:onSyncMessages", {
       UID: requestData.UID,
