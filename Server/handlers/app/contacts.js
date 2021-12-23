@@ -21,12 +21,12 @@ const instanceHandler = require("./instance")
 -- Handlers --
 ------------*/
 
-async function getUserContacts(UID, socket, ...parameters) {
+exports.getUserContacts = async function(UID, socket, ...parameters) {
   UID = UID || instanceHandler.getInstancesBySocket(socket, true)
   return databaseHandler.instances.user.dependencies.contacts.functions.fetchContacts(UID, ...parameters)
 }
 
-async function syncUserContacts(UID, socket, syncInstances) {
+exports.syncUserContacts = async function(UID, socket, syncInstances) {
   if (!UID && !socket) return false
   let fetchedInstances = null
   if (!fetchedInstances) {
@@ -41,7 +41,7 @@ async function syncUserContacts(UID, socket, syncInstances) {
     } 
   }
   if (!fetchedInstances) return false
-  const fetchedContacts = await getUserContacts(UID)
+  const fetchedContacts = await exports.getUserContacts(UID)
   if (!fetchedContacts) return false
 
   if (!syncInstances) {
@@ -53,12 +53,7 @@ async function syncUserContacts(UID, socket, syncInstances) {
   })
   return true
 }
-eventServer.on("App:Contacts:onSync", syncUserContacts)
-
-module.exports = {
-  getUserContacts,
-  syncUserContacts
-}
+eventServer.on("App:Contacts:onSync", exports.syncUserContacts)
 
 
 /*----------------------------
@@ -116,8 +111,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
       else return false
     }
 
-    await syncUserContacts(clientUID, null, true)
-    await syncUserContacts(UID, null, true)
+    await exports.syncUserContacts(clientUID, null, true)
+    await exports.syncUserContacts(UID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", clientUID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
     return true
@@ -136,8 +131,8 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     }
     else return false
 
-    await syncUserContacts(clientUID, null, true)
-    await syncUserContacts(UID, null, true)
+    await exports.syncUserContacts(clientUID, null, true)
+    await exports.syncUserContacts(UID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", clientUID, null, true)
     eventServer.emit("App:Groups:Personal:onSync", UID, null, true)
     return true

@@ -23,12 +23,12 @@ const socketRooms = {}
 -- Handlers --
 ------------*/
 
-async function getUserGroups(UID, socket) {
+exports.getUserGroups = async function(UID, socket) {
   UID = UID || instanceHandler.getInstancesBySocket(socket, true)
   return databaseHandler.instances.user.dependencies.personalGroups.functions.fetchGroups(UID)
 }
 
-async function syncUserGroups(UID, socket, syncInstances) {
+exports.syncUserGroups = async function(UID, socket, syncInstances) {
   if (!UID && !socket) return false
 
   var fetchedInstances = null
@@ -42,7 +42,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
     fetchedInstances = instanceHandler.getInstancesByUID(UID)
   }
   if (!fetchedInstances) return false
-  const fetchedGroups = await getUserGroups(UID)
+  const fetchedGroups = await exports.getUserGroups(UID)
   if (!fetchedGroups) return false
 
   if (!syncInstances) {
@@ -94,12 +94,7 @@ async function syncUserGroups(UID, socket, syncInstances) {
   })
   return true
 }
-eventServer.on("App:Groups:Personal:onSync", syncUserGroups)
-
-module.exports = {
-  getUserGroups,
-  syncUserGroups
-}
+eventServer.on("App:Groups:Personal:onSync", exports.syncUserGroups)
 
 
 /*----------------------------------------
