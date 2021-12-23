@@ -32,10 +32,14 @@ databaseDriver.createToken = function(identifier, isEncrypted) {
 databaseDriver.createREF = async function(defName, skipSync, defData, defOptions, force) { //TODO: REMOVE FORCE
   var createdREF = databaseServer.define(defName, defData, defOptions)
   if (!skipSync) {
-    await databaseServer.isAuthorized
-    await databaseServer.createSchema(defOptions.schema)
-    //if (force) return createdREF.sync({force:  true}) //TODO: REMOVE IN PROD
-    return createdREF.sync()
+    try {
+      await databaseServer.isAuthorized
+      await databaseServer.createSchema(defOptions.schema)
+      //if (force) return createdREF.sync({force:  true}) //TODO: REMOVE IN PROD
+      return createdREF.sync()
+    } catch(error) {
+      return false
+    }
   }
   else return createdREF
 }
