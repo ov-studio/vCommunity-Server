@@ -37,7 +37,7 @@ exports.getInstancesBySocket = function(socket, fetchOnlyUID) {
   return {UID: UID, instances: cInstances}
 }
 
-exports.injectSocket: async function(socketServer, socket) {
+exports.injectSocket = async function(socketServer, socket) {
   socket.on("App:onClientConnect", async function(UID) {
     if (!UID) return false
     if (!clientInstances[UID]) clientInstances[UID] = {}
