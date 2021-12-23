@@ -28,43 +28,47 @@ CModule.functions = {
     if (!payload.senderUID || !payload.receiverUID) return false
     if (!await moduleDependencies.instances.user.functions.isUserExisting(payload.senderUID) || !await moduleDependencies.instances.user.functions.isUserExisting(payload.receiverUID)) return false
 
-    await CModule.isModuleLoaded
-    var groupRefs = [payload.senderUID + "/" + payload.receiverUID, payload.receiverUID + "/" + payload.senderUID]
-    var queryResult = await CModule.REF.findAll({
-      where: {
-        REF: groupRefs
-      }
-    })
-    queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-    if (queryResult) return queryResult.UID
-
     try {
+      await CModule.isModuleLoaded
+      var groupRefs = [payload.senderUID + "/" + payload.receiverUID, payload.receiverUID + "/" + payload.senderUID]
+      var queryResult = await CModule.REF.findAll({
+        where: {
+          REF: groupRefs
+        }
+      })
+      queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+      if (queryResult) return queryResult.UID
+
       queryResult = (await CModule.REF.create({
         REF: groupRefs[0]
       })).get({raw: true})
+      const dependencies = Object.entries(CModule.dependencies)
+      for (const dependency in dependencies) {
+        if (dependencies[dependency][1].functions && !dependencies[dependency][1].disableAutoSync && dependencies[dependency][1].functions.constructor) {
+          await dependencies[dependency][1].functions.constructor(CModule.functions.getInstanceSchema(queryResult.UID), false)
+        }
+      }
+      return queryResult.UID
     } catch(error) {
       return false
     }
-    const dependencies = Object.entries(CModule.dependencies)
-    for (const dependency in dependencies) {
-      if (dependencies[dependency][1].functions && !dependencies[dependency][1].disableAutoSync && dependencies[dependency][1].functions.constructor) {
-        await dependencies[dependency][1].functions.constructor(CModule.functions.getInstanceSchema(queryResult.UID), false)
-      }
-    }
-    return queryResult.UID
   },
 
   destructor: async function(UID) {
     if (!await CModule.functions.isGroupExisting(UID)) return false
 
-    await CModule.isModuleLoaded
-    await CModule.REF.destroy({
-      where: {
-        UID: UID
-      }
-    })
-    await moduleDependencies.driver.destroySchema(CModule.functions.getInstanceSchema(UID))
-    return true
+    try {
+      await CModule.isModuleLoaded
+      await CModule.REF.destroy({
+        where: {
+          UID: UID
+        }
+      })
+      await moduleDependencies.driver.destroySchema(CModule.functions.getInstanceSchema(UID))
+      return true
+    } catch(error) {
+      return false
+    }
   },
 
   getInstanceSchema: function(UID) {
@@ -80,12 +84,16 @@ CModule.functions = {
   isGroupExisting: async function(UID) {
     if (!UID) return false
 
-    const queryResult = await CModule.REF.findAll({
-      where: {
-        UID: UID
-      }
-    })
-    return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
+    try {
+      const queryResult = await CModule.REF.findAll({
+        where: {
+          UID: UID
+        }
+      })
+      return (moduleDependencies.driver.fetchSoloResult(queryResult) && true) || false
+    } catch(error) {
+      return false
+    }
   }
 }
 
@@ -122,10 +130,14 @@ CModule.dependencies = {
         if (!UID || !payload || !payload.message || !payload.owner || (typeof(payload.message) != "string") || (payload.message.length <= 0)) return false
         if (!await moduleDependencies.instances.user.dependencies.personalGroups.functions.fetchGroup(payload.owner, UID)) return false
   
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = (await REF.create(payload)).get({raw: true})
-        return queryResult
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          const queryResult = (await REF.create(payload)).get({raw: true})
+          return queryResult
+        } catch(error) {
+          return false
+        }
       },
 
       fetchMessage: async function(UID, messageUID, userUID) {
@@ -136,14 +148,18 @@ CModule.dependencies = {
           if (!await CModule.functions.isGroupExisting(UID)) return false
         }
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        const queryResult = await REF.findAll({
-          where: {
-            UID: messageUID
-          }
-        })
-        return moduleDependencies.driver.fetchSoloResult(queryResult)
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          const queryResult = await REF.findAll({
+            where: {
+              UID: messageUID
+            }
+          })
+          return moduleDependencies.driver.fetchSoloResult(queryResult)
+        } catch(error) {
+          return false
+        }
       },
 
       fetchMessages: async function(UID, refMessageUID, userUID) {
@@ -154,33 +170,37 @@ CModule.dependencies = {
           if (!await CModule.functions.isGroupExisting(UID)) return false
         }
 
-        await CModule.isModuleLoaded
-        const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
-        if (!refMessageUID) {
-          var queryResult = await REF.findAll({
+        try {
+          await CModule.isModuleLoaded
+          const REF = await CModule.dependencies.messages.functions.constructor(CModule.functions.getInstanceSchema(UID), true)
+          if (!refMessageUID) {
+            var queryResult = await REF.findAll({
+              order: [
+                ["UID", "DESC"]
+              ],
+              limit: 1
+            })
+            queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
+            if (queryResult) refMessageUID = queryResult.UID + 1
+          }
+          if (!refMessageUID) return false
+
+          queryResult = await REF.findAll({
+            where: {
+              UID: {
+                [moduleDependencies.driver.Op.lt]: refMessageUID
+              }
+            },
             order: [
               ["UID", "DESC"]
             ],
-            limit: 1
+            limit: CModule.dependencies.messages.syncRate
           })
-          queryResult = moduleDependencies.driver.fetchSoloResult(queryResult)
-          if (queryResult) refMessageUID = queryResult.UID + 1
+          queryResult.reverse()
+          return queryResult
+        } catch(error) {
+          return false
         }
-        if (!refMessageUID) return false
-
-        queryResult = await REF.findAll({
-          where: {
-            UID: {
-              [moduleDependencies.driver.Op.lt]: refMessageUID
-            }
-          },
-          order: [
-            ["UID", "DESC"]
-          ],
-          limit: CModule.dependencies.messages.syncRate
-        })
-        queryResult.reverse()
-        return queryResult
       }
     }
   }
