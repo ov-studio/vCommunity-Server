@@ -495,6 +495,7 @@ exports.injectModule = function(databaseModule, databaseInstances) {
       schema: moduleDependencies.defaultSchema
     })
     /*
+    TODO: REMOVE LATER..
     var users = await CModule.REF.findAll()
     users.forEach(function(user) {
         console.log(user)

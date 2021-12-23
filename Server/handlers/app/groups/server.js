@@ -156,22 +156,21 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
     return true
   })
 
-  /*
   socket.on("App:Groups:Server:onClientFetchMessages", async function(requestData) {
-    if (!requestData || !requestData.UID || !requestData.messageUID) return false
+    if (!requestData) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
-    if (!socketInstance || !await databaseHandler.instances.user.functions.isUserExisting(socketInstance.UID) || !await databaseHandler.instances.serverGroup.functions.isGroupExisting(requestData.UID)) return false
+    if (!socketInstance) return false
 
-    const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(databaseHandler.instances.serverGroup.functions.getInstanceSchema("messages", requestData.UID), requestData.messageUID)
+    const groupMessages = await databaseHandler.instances.serverGroup.dependencies.messages.functions.fetchMessages(requestData.UID, requestData.channelUID, requestData.messageUID, socketInstance.UID)
     if (!groupMessages) return false
     this.emit("App:Groups:Server:onSyncMessages", {
       UID: requestData.UID,
+      channelUID: requestData.channelUID,
       messages: groupMessages,
       isPostLoad: true
     })
     return true
   })
-  */
 
   socket.on("App:Groups:Server:onClientSendMessage", async function(requestData) {
     if (!requestData || !requestData.UID || !requestData.channelUID || !requestData.message || (typeof(requestData.message) != "string") || (requestData.message.length <= 0)) return false
