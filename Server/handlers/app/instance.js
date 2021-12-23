@@ -21,13 +21,13 @@ const socketInstances = {}
 -- Handlers --
 ------------*/
 
-function getInstancesByUID(UID) {
+exports.getInstancesByUID = function(UID) {
   if (!UID || !clientInstances[UID]) return false
 
   return clientInstances[UID]
 }
 
-function getInstancesBySocket(socket, fetchOnlyUID) {
+exports.getInstancesBySocket = function(socket, fetchOnlyUID) {
   const UID = socketInstances[(socket.id)]
   if (!UID) return false
 
@@ -37,30 +37,25 @@ function getInstancesBySocket(socket, fetchOnlyUID) {
   return {UID: UID, instances: cInstances}
 }
 
-module.exports = {
-  getInstancesByUID,
-  getInstancesBySocket,
+exports.injectSocket: async function(socketServer, socket) {
+  socket.on("App:onClientConnect", async function(UID) {
+    if (!UID) return false
+    if (!clientInstances[UID]) clientInstances[UID] = {}
 
-  injectSocket: async function(socketServer, socket) {
-    socket.on("App:onClientConnect", async function(UID) {
-      if (!UID) return false
-      if (!clientInstances[UID]) clientInstances[UID] = {}
+    const socketID = this.id
+    clientInstances[UID][socketID] = this
+    socketInstances[socketID] = UID
+    eventServer.emit("App:onClientConnect", this, UID)
+  })
 
-      const socketID = this.id
-      clientInstances[UID][socketID] = this
-      socketInstances[socketID] = UID
-      eventServer.emit("App:onClientConnect", this, UID)
-    })
+  socket.on("disconnect", function() {
+    const socketID = this.id
+    const UID = socketInstances[socketID]
+    if (!UID || !clientInstances[UID]) return false
 
-    socket.on("disconnect", function() {
-      const socketID = this.id
-      const UID = socketInstances[socketID]
-      if (!UID || !clientInstances[UID]) return false
-
-      delete clientInstances[UID][socketID]
-      delete socketInstances[socketID]
-      if (Object.keys(clientInstances[UID]).length <= 0) delete clientInstances[UID]
-      eventServer.emit("App:onClientDisconnect", UID)
-    })
-  }
+    delete clientInstances[UID][socketID]
+    delete socketInstances[socketID]
+    if (Object.keys(clientInstances[UID]).length <= 0) delete clientInstances[UID]
+    eventServer.emit("App:onClientDisconnect", UID)
+  })
 }
