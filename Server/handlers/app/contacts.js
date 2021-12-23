@@ -99,12 +99,16 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
         if (!await databaseHandler.instances.user.dependencies.contacts.functions.addContact(clientUID, UID)) return false
       } 
       else if (requestType == "reject") {
-        const REF = await databaseHandler.instances.user.dependencies.contacts.functions.constructor(databaseHandler.instances.user.functions.getInstanceSchema(clientUID), true)
-        await REF.destroy({
-          where: {
-            UID: UID
-          }
-        })
+        try {
+          const REF = await databaseHandler.instances.user.dependencies.contacts.functions.constructor(databaseHandler.instances.user.functions.getInstanceSchema(clientUID), true)
+          await REF.destroy({
+            where: {
+              UID: UID
+            }
+          })
+        } catch(error) {
+          return false
+        }
       } 
       else if (requestType == "unfriend") {
         if (!await databaseHandler.instances.user.dependencies.contacts.functions.removeContact(clientUID, UID)) return false
