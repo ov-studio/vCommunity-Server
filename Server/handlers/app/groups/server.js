@@ -173,7 +173,7 @@ eventServer.on("App:onClientConnect", function(socket, UID) {
   })
 
   socket.on("App:Groups:Server:onClientSendMessage", async function(requestData) {
-    if (!requestData || !requestData.UID || !requestData.channelUID || !requestData.message || (typeof(requestData.message) != "string") || (requestData.message.length <= 0)) return false
+    if (!requestData) return false
     const socketInstance = instanceHandler.getInstancesBySocket(this)
     if (!socketInstance) return false
 
