@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------
-     Resource: vClient (Server)
+     Resource: vCommunity-Server
      Script: servers: socket.js
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
@@ -15,7 +15,7 @@
 const serverPort = process.env.PORT || 3001
 const expressServer = require("express")().use(require("cors")())
 const httpServer = require("http").Server(expressServer).listen(serverPort, () => {
-  console.log("vClient [Server] | Launched [" + serverPort + "]")
+  console.log(`━ vCommunity (Server) | Launched [Port: ${serverPort}]`)
 })
 const socketServer = require("socket.io")(httpServer, {
   cors: {

@@ -1,5 +1,5 @@
 /*----------------------------------------------------------------
-     Resource: vClient (Server)
+     Resource: vCommunity-Server
      Script: handlers: database: loader.js
      Author: vStudio
      Developer(s): Aviril, Mario, Tron
